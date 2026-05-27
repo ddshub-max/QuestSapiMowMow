@@ -1,0 +1,417 @@
+local player = game:GetService("Players").LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+local replicatedStorage = game:GetService("ReplicatedStorage")
+local TweenService = game:GetService("TweenService")
+
+-- ==========================================
+-- 1. FUNGSI PEMBANTU (HELPERS)
+-- ==========================================
+
+local function eksekusiKlik(tombol)
+    if not tombol then return end
+    if firesignal then
+        firesignal(tombol.Activated)
+        firesignal(tombol.MouseButton1Click)
+    elseif getconnections then
+        for _, conn in pairs(getconnections(tombol.Activated)) do conn:Fire() end
+        for _, conn in pairs(getconnections(tombol.MouseButton1Click)) do conn:Fire() end
+    end
+end
+
+local function cariSapi(daftarAbaikan)
+    daftarAbaikan = daftarAbaikan or {}
+    for _, objek in ipairs(workspace:GetChildren()) do
+        if string.match(objek.Name, "^Cow_") then
+            local sudahDikerjakan = false
+            for _, sapiLama in ipairs(daftarAbaikan) do
+                if objek == sapiLama then sudahDikerjakan = true break end
+            end
+            
+            if not sudahDikerjakan then
+                return objek
+            end
+        end
+    end
+    return nil
+end
+
+-- ==========================================
+-- 2. FUNGSI MINIGAME (DINAMIS / RANDOM RONDE)
+-- ==========================================
+
+local function selesaikanTugasSapiAkurat()
+    local minigameGui = playerGui:WaitForChild("QurbanMinigameGui", 10)
+    if not minigameGui then 
+        warn("[ERROR] UI QurbanMinigameGui tidak muncul!")
+        return false
+    end
+    
+    local main = minigameGui:WaitForChild("Main")
+    local mobileButtons = minigameGui:WaitForChild("MobileButtons")
+    local instructionLbl = main:WaitForChild("Instruction")
+    local counterLbl = main:WaitForChild("MashCounter")
+    
+    local ronde = 1
+    local maxRonde = 12 -- Failsafe agar tidak infinite loop jika UI ngebug
+    
+    -- LOOP DINAMIS: Akan terus berjalan selama UI Minigame masih aktif (Enabled)
+    while minigameGui.Enabled and ronde <= maxRonde do
+        print("  [Ronde " .. ronde .. "] Menunggu tugas...")
+        
+        local tombolPertama = nil
+        local waktuTunggu = tick()
+        repeat
+            for _, child in ipairs(mobileButtons:GetChildren()) do
+                if string.match(child.Name, "^BtnKey_") then
+                    tombolPertama = child
+                    break
+                end
+            end
+            task.wait(0.1)
+        until tombolPertama or (tick() - waktuTunggu > 10) or not minigameGui.Enabled
+        
+        -- Jika UI sudah hilang saat menunggu, berarti minigame selesai
+        if not minigameGui.Enabled then break end
+        
+        if not tombolPertama then
+            warn("  [WARNING] Timeout minigame di ronde " .. ronde)
+            return false
+        end
+
+        local instText = instructionLbl.Text
+        local countText = counterLbl.Text
+        local tipeSoal = ""
+        local urutanTombol = {}
+        local targetClicks = 1
+
+        if string.find(instText, ">") or string.find(instText, "→") or string.find(instText, "➔") or string.find(instText, "➡") then
+            tipeSoal = "SEQUENCE"
+            for huruf in string.gmatch(instText, "%u") do table.insert(urutanTombol, huruf) end
+        elseif string.find(string.lower(instText), "get ready") then
+            tipeSoal = "READY"
+            targetClicks = 1
+            local huruf = string.match(instText, "%[(%u)%]") or string.match(string.upper(string.gsub(string.lower(instText), "get ready", "")), "%u")
+            if huruf then table.insert(urutanTombol, huruf) end
+        else
+            tipeSoal = "TAP"
+            local huruf = string.match(instText, "%[(%u)%]") or string.match(string.upper(string.gsub(string.lower(instText), "tap", "")), "%u")
+            if huruf then table.insert(urutanTombol, huruf) end
+            
+            local angkaTarget = string.match(countText, "/%s*(%d+)")
+            if angkaTarget then targetClicks = tonumber(angkaTarget)
+            else
+                local angkaTunggal = string.match(countText, "%d+")
+                if angkaTunggal then targetClicks = tonumber(angkaTunggal) end
+            end
+        end
+
+        if tipeSoal == "SEQUENCE" then
+            for _, huruf in ipairs(urutanTombol) do
+                local btnTarget = mobileButtons:WaitForChild("BtnKey_" .. huruf, 3)
+                if btnTarget then
+                    eksekusiKlik(btnTarget)
+                    task.wait(0.3)
+                end
+            end
+        else
+            local hurufTarget = urutanTombol[1]
+            if hurufTarget then
+                local btnTarget = mobileButtons:FindFirstChild("BtnKey_" .. hurufTarget)
+                if btnTarget then
+                    for i = 1, targetClicks do
+                        if not btnTarget.Parent or not minigameGui.Enabled then break end
+                        eksekusiKlik(btnTarget)
+                        task.wait(0.1) 
+                    end
+                end
+            end
+        end
+
+        -- Tunggu sampai tombol hilang atau ronde berganti
+        repeat
+            local masihAda = false
+            for _, child in ipairs(mobileButtons:GetChildren()) do
+                if string.match(child.Name, "^BtnKey_") then masihAda = true break end
+            end
+            task.wait(0.1)
+        until not masihAda or not minigameGui.Enabled
+        
+        task.wait(0.5) 
+        ronde = ronde + 1
+    end
+    
+    print("  [+] Sapi ini berhasil diselesaikan setelah " .. (ronde - 1) .. " ronde!")
+    return true
+end
+
+-- ==========================================
+-- 3. ALUR UTAMA (AUTO FARM 4 SAPI)
+-- ==========================================
+
+local function jalankanAutoFarmSapi()
+    local character = player.Character or player.CharacterAdded:Wait()
+    local hrp = character:WaitForChild("HumanoidRootPart")
+    
+    local targetNPC = workspace:WaitForChild("Event"):WaitForChild("NPC"):FindFirstChild("DA0ZA")
+    if targetNPC then
+        print("\n=================================")
+        print("[1] Memulai Quest DA0ZA...")
+        hrp.CFrame = targetNPC:GetPivot() * CFrame.new(0, 0, 3)
+        task.wait(0.5)
+        
+        local prompt = targetNPC:FindFirstChildWhichIsA("ProximityPrompt", true)
+        if prompt then
+            fireproximityprompt(prompt)
+            task.wait(1) 
+            
+            local args = { { dialogId = "QurbanIntro", response = "accept" } }
+            local remote = replicatedStorage:WaitForChild("EventAsset"):WaitForChild("QurbanRemotes"):WaitForChild("DialogResponse")
+            remote:FireServer(unpack(args))
+            print("[✓] Quest Qurban diterima!")
+        end
+    else
+        return warn("[ERROR] NPC DA0ZA tidak ditemukan!")
+    end
+    
+    local sapiSelesai = {} 
+    
+    for urutan = 1, 4 do
+        print("\n---------------------------------")
+        print("[2] Mencari Sapi ke-" .. urutan .. " dari 4...")
+        
+        -- [REVISI] Jeda 3 detik HANYA diterapkan saat mau mencari sapi pertama
+        if urutan == 1 then
+            print("  [!] Menunggu 3 detik khusus untuk sapi pertama...")
+            task.wait(3)
+        end
+        
+        local sapiTarget = cariSapi(sapiSelesai)
+        local waktuTunggu = tick()
+        while not sapiTarget and (tick() - waktuTunggu < 20) do
+            task.wait(1)
+            sapiTarget = cariSapi(sapiSelesai)
+        end
+        
+        if sapiTarget then
+            print("-> Ditemukan: " .. sapiTarget.Name .. ". Meluncur!")
+            hrp.CFrame = sapiTarget:GetPivot() * CFrame.new(0, 0, 3)
+            task.wait(0.5)
+            
+            local promptSapi = sapiTarget:FindFirstChildWhichIsA("ProximityPrompt", true)
+            if promptSapi then
+                fireproximityprompt(promptSapi)
+                task.wait(1)
+                
+                local suksesMinigame = selesaikanTugasSapiAkurat()
+                if suksesMinigame then
+                    table.insert(sapiSelesai, sapiTarget)
+                end
+            else
+                warn("-> [ERROR] ProximityPrompt tidak ada di sapi ini!")
+            end
+        else
+            warn("-> [GAGAL] Sapi ke-" .. urutan .. " tidak ditemukan di map.")
+            break 
+        end
+        
+        -- Jeda istirahat di akhir dihapus. Sapi ke-2 dan seterusnya akan langsung dicari.
+    end
+    
+    print("\n=================================")
+    print("QUEST SELESAI: 4 SAPI TELAH DIPOTONG!")
+    print("=================================\n")
+    return true
+end
+
+-- ==========================================
+-- 4. FUNGSI TRUK & FISIKA
+-- ==========================================
+
+local function nonaktifkanTabrakanMasjidPermanen()
+    task.spawn(function()
+        local eventFolder = workspace:FindFirstChild("Event")
+        if eventFolder then
+            for _, objek in ipairs(eventFolder:GetDescendants()) do
+                if string.match(objek.Name, "Masjid") and objek:IsA("Model") then
+                    for _, part in ipairs(objek:GetDescendants()) do
+                        if part:IsA("BasePart") and part.CanCollide then
+                            part.CanCollide = false
+                        end
+                    end
+                end
+            end
+        end
+    end)
+end
+
+local cacheFisikaTruk = {}
+local function aturFisikaTruk(truk, modeNormal)
+    for _, part in ipairs(truk:GetDescendants()) do
+        if part:IsA("BasePart") then
+            if not modeNormal then
+                if cacheFisikaTruk[part] == nil then
+                    cacheFisikaTruk[part] = { Collide = part.CanCollide, Anchor = part.Anchored }
+                end
+                part.CanCollide = false
+                part.Anchored = true
+            else
+                if cacheFisikaTruk[part] ~= nil then
+                    part.CanCollide = cacheFisikaTruk[part].Collide
+                    part.Anchored = cacheFisikaTruk[part].Anchor
+                else
+                    part.CanCollide = true
+                    part.Anchored = false
+                end
+                part.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
+                part.AssemblyAngularVelocity = Vector3.new(0, 0, 0)
+            end
+        end
+    end
+end
+
+local function cariMasjidTerdekat(posisiTruk)
+    local masjidTerdekat = nil
+    local jarakTerpendek = math.huge 
+    local eventFolder = workspace:FindFirstChild("Event")
+    if not eventFolder then return nil end
+
+    for _, objek in ipairs(eventFolder:GetDescendants()) do
+        if string.match(objek.Name, "Masjid") and objek:IsA("Model") then
+            local posisiMasjid = objek:GetPivot().Position
+            local jarak = (posisiMasjid - posisiTruk).Magnitude
+            if jarak < jarakTerpendek then
+                jarakTerpendek = jarak
+                masjidTerdekat = objek
+            end
+        end
+    end
+    return masjidTerdekat
+end
+
+local function jalankanTrukModeAman()
+    nonaktifkanTabrakanMasjidPermanen()
+    local vehicleFolder = workspace:FindFirstChild("Vehicles")
+    if not vehicleFolder then return warn("[ERROR] Folder Vehicles tidak ditemukan!") end
+    
+    local trukTarget = nil
+    for _, objek in ipairs(vehicleFolder:GetChildren()) do
+        if string.match(objek.Name, "^QurbanTruck_") then
+            trukTarget = objek
+            break
+        end
+    end
+    
+    local tujuan = workspace:FindFirstChild("DestinationBeacon")
+    
+    if trukTarget and tujuan then
+        print("[INFO] Memulai rute penerbangan truk: " .. trukTarget.Name)
+        
+        local KETINGGIAN_TERBANG = 400 
+        local KECEPATAN_CEPAT = 100 
+        local KECEPATAN_PELAN = 50  
+        
+        local startCFrame = trukTarget:GetPivot()
+        local targetCFrame_Awal = tujuan:GetPivot()
+        
+        local origin = targetCFrame_Awal.Position
+        local direction = Vector3.new(0, -2000, 0) 
+        local rayParams = RaycastParams.new()
+        rayParams.FilterDescendantsInstances = {trukTarget} 
+        rayParams.FilterType = Enum.RaycastFilterType.Exclude
+        
+        local hitResult = workspace:Raycast(origin, direction, rayParams)
+        local posisiTanahCFrame = targetCFrame_Awal
+        if hitResult then
+            posisiTanahCFrame = CFrame.new(hitResult.Position) * targetCFrame_Awal.Rotation
+        end
+        
+        local endCFrame = posisiTanahCFrame + Vector3.new(0, 3.5, 0) 
+        
+        local waypoint1_Naik = startCFrame + Vector3.new(0, KETINGGIAN_TERBANG, 0)
+        local waypoint2_Maju = endCFrame + Vector3.new(0, KETINGGIAN_TERBANG, 0)
+        local waypoint3_Turun = endCFrame
+        
+        local tweenValue = Instance.new("CFrameValue")
+        tweenValue.Value = startCFrame
+        
+        local koneksi = tweenValue.Changed:Connect(function(cframeBaru)
+            trukTarget:PivotTo(cframeBaru)
+        end)
+        
+        local function terbangKeTitik(targetCFrame, namaFase, kecepatanAktif)
+            local jarak = (tweenValue.Value.Position - targetCFrame.Position).Magnitude
+            local waktu = jarak / kecepatanAktif
+            if waktu < 0.1 then waktu = 0.1 end 
+            
+            local gayaAnimasi = Enum.EasingStyle.Linear
+            local arahAnimasi = Enum.EasingDirection.InOut
+            if string.match(namaFase, "Mendarat") or string.match(namaFase, "Parkir") then
+                gayaAnimasi = Enum.EasingStyle.Sine
+                arahAnimasi = Enum.EasingDirection.Out
+            end
+            
+            local tweenInfo = TweenInfo.new(waktu, gayaAnimasi, arahAnimasi)
+            local tween = TweenService:Create(tweenValue, tweenInfo, {Value = targetCFrame})
+            tween:Play()
+            tween.Completed:Wait() 
+        end
+        
+        aturFisikaTruk(trukTarget, false)
+        
+        terbangKeTitik(waypoint1_Naik, "1 (Lepas Landas)", KECEPATAN_CEPAT)
+        terbangKeTitik(waypoint2_Maju, "2 (Mengudara ke Beacon)", KECEPATAN_CEPAT) 
+        terbangKeTitik(waypoint3_Turun, "3 (Mendarat di Beacon)", KECEPATAN_PELAN) 
+        
+        local masjidTarget = cariMasjidTerdekat(trukTarget:GetPivot().Position)
+        if masjidTarget then
+            local posisiMasjid = masjidTarget:GetPivot()
+            local waypoint4_Masjid = CFrame.new(
+                posisiMasjid.Position.X, 
+                posisiTanahCFrame.Position.Y + 3.5, 
+                posisiMasjid.Position.Z
+            ) * posisiMasjid.Rotation
+            terbangKeTitik(waypoint4_Masjid, "4 (Parkir di Masjid)", KECEPATAN_PELAN)
+        end
+        
+        koneksi:Disconnect()
+        tweenValue:Destroy()
+        task.wait(0.5)
+        
+        local brakeEvent = trukTarget:FindFirstChild("Brakeoverheat")
+        if brakeEvent then brakeEvent:FireServer("SoundUpdate", 0, "Sound1") end
+        
+        aturFisikaTruk(trukTarget, true)
+        print("[✓] Eksekusi Selesai! Truk 100% aman dari jepretan Fling.")
+    else
+        warn("[ERROR] Truk atau DestinationBeacon tidak ditemukan!")
+    end
+end
+
+-- ==========================================
+-- 5. EKSEKUSI LOOP UTAMA (INFINITY LOOP)
+-- ==========================================
+
+local function StartAutoFarmLoop()
+    -- Memberikan notifikasi awal
+    print("========================================")
+    print("🛠️ MASTER AUTO FARM STARTED 🛠️")
+    print("========================================")
+    
+    while true do
+        print("\n▶️ MEMULAI SIKLUS FARMING SAPI...")
+        local successFarm, errFarm = pcall(jalankanAutoFarmSapi)
+        if not successFarm then warn("Error Sapi: " .. tostring(errFarm)) end
+        
+        task.wait(2) -- Jeda transisi dari sapi ke truk
+        
+        print("\n▶️ MEMULAI SIKLUS PENGIRIMAN TRUK...")
+        local successTruk, errTruk = pcall(jalankanTrukModeAman)
+        if not successTruk then warn("Error Truk: " .. tostring(errTruk)) end
+        
+        print("\n✅ SATU SIKLUS FULL SELESAI. Mengulang dalam 10 detik...")
+        task.wait(7) -- Jeda sebelum mengulang quest lagi dari DA0ZA
+    end
+end
+
+-- Jalankan Loop Utamanya
+task.spawn(StartAutoFarmLoop)
