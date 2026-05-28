@@ -3,6 +3,31 @@ local playerGui = player:WaitForChild("PlayerGui")
 local replicatedStorage = game:GetService("ReplicatedStorage")
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
+local GuiService = game:GetService("GuiService")
+
+-- ==========================================
+-- 0. ANTI-AFK & ANTI-BLUR GAMEPLAY PAUSED
+-- ==========================================
+-- Menghilangkan UI Blur saat map loading lambat
+pcall(function()
+    GuiService:SetGameplayPausedNotificationEnabled(false)
+end)
+
+-- Anti-AFK 20 Menit
+if getconnections then
+    for _, conn in pairs(getconnections(player.Idled)) do
+        conn:Disable()
+    end
+    print("[INFO] Anti-AFK Aktif! (Event Idled Dimatikan)")
+else
+    local vu = game:GetService("VirtualUser")
+    player.Idled:Connect(function()
+        vu:Button2Down(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
+        task.wait(1)
+        vu:Button2Up(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
+    end)
+    print("[INFO] Anti-AFK Aktif! (VirtualUser Fallback)")
+end
 
 -- ==========================================
 -- 1. PEMBUATAN UI (KODE ASLI + TAMBAHAN CONFIG)
@@ -20,8 +45,8 @@ MainFrame.Name = "MainFrame"
 MainFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
 MainFrame.BackgroundTransparency = 0.45
 MainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
-MainFrame.Position = UDim2.new(0.5, 0, 0.5, 0) -- Ditaruh di tengah layar
-MainFrame.Size = UDim2.new(0.23606, 0, 0.55, 0) -- Size Y sedikit dibesarkan untuk Input Poin
+MainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
+MainFrame.Size = UDim2.new(0.23606, 0, 0.55, 0) 
 MainFrame.BorderSizePixel = 0
 Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0.02, 0)
 Instance.new("UIStroke", MainFrame)
@@ -105,7 +130,6 @@ CurrentPointLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
 CurrentPointLabel.TextXAlignment = Enum.TextXAlignment.Right
 CurrentPointLabel.Text = "0"
 
--- [TAMBAHAN] Target Point & Estimasi
 local LblTarget = Instance.new("TextLabel", MainFrame)
 LblTarget.BackgroundTransparency = 1
 LblTarget.Position = UDim2.new(0.09272, 0, 0.65, 0)
@@ -169,7 +193,6 @@ OpenImg.Size = UDim2.new(0.8, 0, 0.8, 0)
 OpenImg.Position = UDim2.new(0.1, 0, 0.1, 0)
 OpenImg.Image = "rbxassetid://204958628"
 
--- [TAMBAHAN] Config Frame (Speed & Estimasi) ditaruh di sebelah MainFrame
 local ConfigFrame = Instance.new("Frame", QuestBossGui)
 ConfigFrame.Name = "ConfigFrame"
 ConfigFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
@@ -179,7 +202,7 @@ ConfigFrame.AnchorPoint = Vector2.new(0, 0.5)
 ConfigFrame.Size = UDim2.new(0.15, 0, 0.2, 0)
 Instance.new("UICorner", ConfigFrame).CornerRadius = UDim.new(0.1, 0)
 Instance.new("UIStroke", ConfigFrame)
-ConfigFrame.Visible = MainFrame.Visible -- Sync visibility
+ConfigFrame.Visible = MainFrame.Visible
 
 local LblSpeed = Instance.new("TextLabel", ConfigFrame)
 LblSpeed.BackgroundTransparency = 1
@@ -218,7 +241,7 @@ EstimasiLabel.Position = UDim2.new(0.5, 0, 0.6, 0)
 EstimasiLabel.Size = UDim2.new(0.4, 0, 0.25, 0)
 EstimasiLabel.Font = Enum.Font.SourceSansBold
 EstimasiLabel.TextScaled = true
-EstimasiLabel.TextColor3 = Color3.fromRGB(255, 215, 0) -- Warna Emas
+EstimasiLabel.TextColor3 = Color3.fromRGB(255, 215, 0) 
 EstimasiLabel.TextXAlignment = Enum.TextXAlignment.Right
 EstimasiLabel.Text = "00:00"
 
@@ -299,20 +322,17 @@ StartPointLabel.Text = tostring(startingPoints)
 CurrentPointLabel.Text = tostring(startingPoints)
 EaernedPoinLabel.Text = "0"
 
--- Loop ini sekarang mengurus Poin DAN Estimasi Waktu secara Real-Time (tiap 1 detik)
 task.spawn(function()
     while task.wait(1) do
-        -- 1. Update Poin
         local current = getPointsNum()
         local earned = current - startingPoints
         CurrentPointLabel.Text = tostring(current)
         EaernedPoinLabel.Text = tostring(earned)
         
-        -- 2. Update Estimasi Real-Time (Countdown)
         local targetPoin = tonumber(InputPoin.Text) or 0
         if targetPoin > 0 then
             local sisaPoin = targetPoin - earned
-            if sisaPoin < 0 then sisaPoin = 0 end -- Cegah angka minus jika poin sudah berlebih
+            if sisaPoin < 0 then sisaPoin = 0 end 
             
             local PoinPerSiklus = 100 
             local DetikPerSiklus = 80 
@@ -489,6 +509,7 @@ local function jalankanAutoFarmSapi()
     
     local targetNPC = workspace:WaitForChild("Event"):WaitForChild("NPC"):FindFirstChild("DA0ZA")
     if targetNPC then
+        player:RequestStreamAroundAsync(targetNPC:GetPivot().Position) -- Load Map
         hrp.CFrame = targetNPC:GetPivot() * CFrame.new(0, 0, 3)
         task.wait(0.5)
         local prompt = targetNPC:FindFirstChildWhichIsA("ProximityPrompt", true)
@@ -510,6 +531,7 @@ local function jalankanAutoFarmSapi()
         end
         
         if sapiTarget then
+            player:RequestStreamAroundAsync(sapiTarget:GetPivot().Position) -- Load Map
             hrp.CFrame = sapiTarget:GetPivot() * CFrame.new(0, 0, 3); task.wait(0.5)
             local promptSapi = sapiTarget:FindFirstChildWhichIsA("ProximityPrompt", true)
             if promptSapi then
@@ -558,7 +580,7 @@ local function jalankanTrukModeAman()
     end
     
     if trukTarget and tujuan then
-        local KECEPATAN_CEPAT = tonumber(SpeedTruckInput.Text) or 100 
+        local KECEPATAN_CEPAT = tonumber(SpeedTruckInput.Text) or 1000 
         local KECEPATAN_PELAN = 50  
         
         local startCFrame, targetCFrame_Awal = trukTarget:GetPivot(), tujuan:GetPivot()
@@ -570,7 +592,6 @@ local function jalankanTrukModeAman()
         local posisiTanahCFrame = hitResult and (CFrame.new(hitResult.Position) * targetCFrame_Awal.Rotation) or targetCFrame_Awal
         
         local endCFrame = posisiTanahCFrame + Vector3.new(0, 3.5, 0) 
-        
         local waypoint1_Naik = startCFrame + Vector3.new(0, 400, 0)
         local waypoint2_Maju = endCFrame + Vector3.new(0, 400, 0)
         local waypoint3_Turun = endCFrame
@@ -579,51 +600,37 @@ local function jalankanTrukModeAman()
         tweenValue.Value = startCFrame
         local koneksi = tweenValue.Changed:Connect(function(c) trukTarget:PivotTo(c) end)
         
-        -- [LOGIKA TWEEN DIKEMBALIKAN KE ASLI]
-        local function terbangKeTitik(targetCFrame, namaFase, kecepatanAktif)
+        local function terbangKeTitik(tCFrame, namaFase, kec)
             if not isFarming then return end
-            
-            local jarak = (tweenValue.Value.Position - targetCFrame.Position).Magnitude
-            local waktu = jarak / kecepatanAktif
-            if waktu < 0.1 then waktu = 0.1 end 
+            local wkt = math.max((tweenValue.Value.Position - tCFrame.Position).Magnitude / kec, 0.1)
             
             local gayaAnimasi = Enum.EasingStyle.Linear
             local arahAnimasi = Enum.EasingDirection.InOut
-            
-            -- Pengereman (Sine Out) aktif khusus saat mendarat/parkir agar fisika tidak kaget
             if string.match(namaFase, "Mendarat") or string.match(namaFase, "Parkir") then
                 gayaAnimasi = Enum.EasingStyle.Sine
                 arahAnimasi = Enum.EasingDirection.Out
             end
             
-            local tweenInfo = TweenInfo.new(waktu, gayaAnimasi, arahAnimasi)
-            local twn = TweenService:Create(tweenValue, tweenInfo, {Value = targetCFrame})
-            twn:Play()
-            twn.Completed:Wait() 
+            local twn = TweenService:Create(tweenValue, TweenInfo.new(wkt, gayaAnimasi, arahAnimasi), {Value = tCFrame})
+            twn:Play(); twn.Completed:Wait() 
         end
         
         aturFisikaTruk(trukTarget, false)
+        player:RequestStreamAroundAsync(tujuan:GetPivot().Position) -- Load Map Tujuan
         
-        terbangKeTitik(waypoint1_Naik, "1 (Lepas Landas)", KECEPATAN_CEPAT)
-        terbangKeTitik(waypoint2_Maju, "2 (Mengudara)", KECEPATAN_CEPAT) 
-        terbangKeTitik(waypoint3_Turun, "3 (Mendarat)", KECEPATAN_PELAN) 
+        terbangKeTitik(waypoint1_Naik, "1", KECEPATAN_CEPAT)
+        terbangKeTitik(waypoint2_Maju, "2", KECEPATAN_CEPAT) 
+        terbangKeTitik(waypoint3_Turun, "Mendarat", KECEPATAN_PELAN) 
         
         local masjidTarget = cariMasjidTerdekat(trukTarget:GetPivot().Position)
         if masjidTarget then
             local p = masjidTarget:GetPivot()
-            local waypoint4_Masjid = CFrame.new(p.Position.X, posisiTanahCFrame.Position.Y + 3.5, p.Position.Z) * p.Rotation
-            terbangKeTitik(waypoint4_Masjid, "4 (Parkir)", KECEPATAN_PELAN)
+            terbangKeTitik(CFrame.new(p.Position.X, posisiTanahCFrame.Position.Y + 3.5, p.Position.Z) * p.Rotation, "Parkir", KECEPATAN_PELAN)
         end
         
-        koneksi:Disconnect()
-        tweenValue:Destroy()
-        
-        -- Jeda ekstra untuk penyelarasan server sebelum un-anchor
-        task.wait(0.5)
-        
+        koneksi:Disconnect(); tweenValue:Destroy(); task.wait(0.5)
         local brakeEvent = trukTarget:FindFirstChild("Brakeoverheat")
         if brakeEvent then brakeEvent:FireServer("SoundUpdate", 0, "Sound1") end
-        
         aturFisikaTruk(trukTarget, true)
     end
 end
