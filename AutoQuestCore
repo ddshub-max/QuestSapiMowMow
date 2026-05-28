@@ -1,237 +1,371 @@
---[=[
-  d888b   db    db d888888b      .d888b.      db      db    db  .d8b.  
- 88' Y8b 88    88    `88'        VP  `8D      88      88    88 d8' `8b 
- 88      88    88     88           odD'       88      88    88 88ooo88 
- 88  ooo 88    88     88          .88'        88      88    88 88~~~88 
- 88. ~8~ 88b  d88    .88.        j88.         88booo. 88b  d88 88   88    @uniquadev
-  Y888P  ~Y8888P' Y888888P       888888D      Y88888P ~Y8888P' YP   YP  CONVERTER 
-]=]
-
-local player = game:GetService("Players").LocalPlayer
-local playerGui = player:WaitForChild("PlayerGui")
-local replicatedStorage = game:GetService("ReplicatedStorage")
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
+local replicatedStorage = game:GetService("ReplicatedStorage")
+
+local player = Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
 
 -- ==========================================
--- 1. PEMBUATAN UI (G2L KE INSTANCE LANGSUNG)
+-- 1. PEMBUATAN UI (DARI G2L)
 -- ==========================================
-local QuestBossGui = Instance.new("ScreenGui")
-QuestBossGui.Name = "QuestBossGui"
-QuestBossGui.IgnoreGuiInset = true
-QuestBossGui.ScreenInsets = Enum.ScreenInsets.DeviceSafeInsets
-QuestBossGui.ResetOnSpawn = false
-QuestBossGui.DisplayOrder = 999999
-QuestBossGui.Parent = playerGui
+local G2L = {};
 
-local MainFrame = Instance.new("Frame", QuestBossGui)
-MainFrame.Name = "MainFrame"
-MainFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-MainFrame.BackgroundTransparency = 0.45
-MainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
-MainFrame.Position = UDim2.new(0.84601, 0, 0.4148, 0)
-MainFrame.Size = UDim2.new(0.23606, 0, 0.47311, 0)
-MainFrame.BorderSizePixel = 0
-Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0.02, 0)
-Instance.new("UIStroke", MainFrame)
+G2L["1"] = Instance.new("ScreenGui", playerGui);
+G2L["1"]["IgnoreGuiInset"] = true;
+G2L["1"]["DisplayOrder"] = 99999;
+G2L["1"]["ScreenInsets"] = Enum.ScreenInsets.DeviceSafeInsets;
+G2L["1"]["Name"] = [[QuestBossGui]];
+G2L["1"]["ZIndexBehavior"] = Enum.ZIndexBehavior.Sibling;
+G2L["1"]["ResetOnSpawn"] = false;
 
-local PlrImg = Instance.new("ImageLabel", MainFrame)
-PlrImg.Name = "PlrImg"
-PlrImg.BackgroundTransparency = 1
-PlrImg.Position = UDim2.new(0.33334, 0, 0.06888, 0)
-PlrImg.Size = UDim2.new(0.33113, 0, 0.29357, 0)
-Instance.new("UICorner", PlrImg).CornerRadius = UDim.new(1, 0)
+G2L["2"] = Instance.new("Frame", G2L["1"]);
+G2L["2"]["BackgroundColor3"] = Color3.fromRGB(0, 0, 0);
+G2L["2"]["AnchorPoint"] = Vector2.new(0.5, 0.5);
+G2L["2"]["Size"] = UDim2.new(0.582, 0, 0.657, 0);
+G2L["2"]["Position"] = UDim2.new(0.5, 0, 0.5, 0);
+G2L["2"]["Name"] = [[MainFrame]];
+G2L["2"]["BackgroundTransparency"] = 0.25;
 
-local PlrName = Instance.new("TextLabel", MainFrame)
-PlrName.Name = "PlrName"
-PlrName.BackgroundTransparency = 1
-PlrName.Position = UDim2.new(0.07947, 0, 0.3815, 0)
-PlrName.Size = UDim2.new(0.83886, 0, 0.07828, 0)
-PlrName.Font = Enum.Font.SourceSansBold
-PlrName.TextScaled = true
-PlrName.TextColor3 = Color3.fromRGB(255, 255, 255)
+G2L["3"] = Instance.new("UICorner", G2L["2"]);
+G2L["3"]["CornerRadius"] = UDim.new(0.02, 0);
 
-local LblStart = Instance.new("TextLabel", MainFrame)
-LblStart.BackgroundTransparency = 1
-LblStart.Position = UDim2.new(0.09272, 0, 0.45913, 0)
-LblStart.Size = UDim2.new(0.4106, 0, 0.08024, 0)
-LblStart.Font = Enum.Font.SourceSans
-LblStart.TextScaled = true
-LblStart.TextColor3 = Color3.fromRGB(255, 255, 255)
-LblStart.TextXAlignment = Enum.TextXAlignment.Left
-LblStart.Text = "Starting Point :"
+G2L["4"] = Instance.new("UIStroke", G2L["2"]);
 
-local StartPointLabel = Instance.new("TextLabel", MainFrame)
-StartPointLabel.Name = "StartPointLabel"
-StartPointLabel.BackgroundTransparency = 1
-StartPointLabel.Position = UDim2.new(0.55203, 0, 0.45913, 0)
-StartPointLabel.Size = UDim2.new(0.351, 0, 0.08024, 0)
-StartPointLabel.Font = Enum.Font.SourceSans
-StartPointLabel.TextScaled = true
-StartPointLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-StartPointLabel.TextXAlignment = Enum.TextXAlignment.Right
-StartPointLabel.Text = "0"
+G2L["5"] = Instance.new("ImageLabel", G2L["2"]);
+G2L["5"]["BackgroundColor3"] = Color3.fromRGB(255, 255, 255);
+G2L["5"]["Image"] = Players:GetUserThumbnailAsync(player.UserId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size420x420);
+G2L["5"]["Size"] = UDim2.new(0.135, 0, 0.214, 0);
+G2L["5"]["BackgroundTransparency"] = 1;
+G2L["5"]["Name"] = [[PlrImg]];
+G2L["5"]["Position"] = UDim2.new(0.067, 0, 0.084, 0);
 
-local LblEarned = Instance.new("TextLabel", MainFrame)
-LblEarned.BackgroundTransparency = 1
-LblEarned.Position = UDim2.new(0.09272, 0, 0.51689, 0)
-LblEarned.Size = UDim2.new(0.4106, 0, 0.08024, 0)
-LblEarned.Font = Enum.Font.SourceSans
-LblEarned.TextScaled = true
-LblEarned.TextColor3 = Color3.fromRGB(255, 255, 255)
-LblEarned.TextXAlignment = Enum.TextXAlignment.Left
-LblEarned.Text = "Earned Point :"
+G2L["6"] = Instance.new("UICorner", G2L["5"]);
+G2L["6"]["CornerRadius"] = UDim.new(1, 0);
 
-local EaernedPoinLabel = Instance.new("TextLabel", MainFrame)
-EaernedPoinLabel.Name = "EaernedPoinLabel"
-EaernedPoinLabel.BackgroundTransparency = 1
-EaernedPoinLabel.Position = UDim2.new(0.55203, 0, 0.51689, 0)
-EaernedPoinLabel.Size = UDim2.new(0.351, 0, 0.08024, 0)
-EaernedPoinLabel.Font = Enum.Font.SourceSans
-EaernedPoinLabel.TextScaled = true
-EaernedPoinLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-EaernedPoinLabel.TextXAlignment = Enum.TextXAlignment.Right
-EaernedPoinLabel.Text = "0"
+G2L["7"] = Instance.new("TextLabel", G2L["2"]);
+G2L["7"]["TextWrapped"] = true;
+G2L["7"]["TextSize"] = 14;
+G2L["7"]["TextXAlignment"] = Enum.TextXAlignment.Left;
+G2L["7"]["TextScaled"] = true;
+G2L["7"]["FontFace"] = Font.new([[rbxasset://fonts/families/SourceSansPro.json]], Enum.FontWeight.Bold, Enum.FontStyle.Normal);
+G2L["7"]["TextColor3"] = Color3.fromRGB(255, 255, 255);
+G2L["7"]["BackgroundTransparency"] = 1;
+G2L["7"]["Size"] = UDim2.new(0.708, 0, 0.111, 0);
+G2L["7"]["Text"] = player.DisplayName .. " (@" .. player.Name .. ")";
+G2L["7"]["Name"] = [[PlrName]];
+G2L["7"]["Position"] = UDim2.new(0.229, 0, 0.159, 0);
 
-local LblCurrent = Instance.new("TextLabel", MainFrame)
-LblCurrent.BackgroundTransparency = 1
-LblCurrent.Position = UDim2.new(0.09272, 0, 0.57465, 0)
-LblCurrent.Size = UDim2.new(0.48787, 0, 0.08024, 0)
-LblCurrent.Font = Enum.Font.SourceSans
-LblCurrent.TextScaled = true
-LblCurrent.TextColor3 = Color3.fromRGB(255, 255, 255)
-LblCurrent.TextXAlignment = Enum.TextXAlignment.Left
-LblCurrent.Text = "Current Point :"
+G2L["8"] = Instance.new("TextLabel", G2L["2"]);
+G2L["8"]["TextScaled"] = true;
+G2L["8"]["FontFace"] = Font.new([[rbxasset://fonts/families/SourceSansPro.json]], Enum.FontWeight.Regular, Enum.FontStyle.Normal);
+G2L["8"]["TextColor3"] = Color3.fromRGB(195, 195, 195);
+G2L["8"]["BackgroundTransparency"] = 1;
+G2L["8"]["Size"] = UDim2.new(0.261, 0, 0.080, 0);
+G2L["8"]["Text"] = [[Starting Point :]];
+G2L["8"]["Position"] = UDim2.new(0.067, 0, 0.336, 0);
+G2L["8"]["TextXAlignment"] = Enum.TextXAlignment.Left;
 
-local CurrentPointLabel = Instance.new("TextLabel", MainFrame)
-CurrentPointLabel.Name = "CurrentPointLabel"
-CurrentPointLabel.BackgroundTransparency = 1
-CurrentPointLabel.Position = UDim2.new(0.55203, 0, 0.57465, 0)
-CurrentPointLabel.Size = UDim2.new(0.351, 0, 0.08024, 0)
-CurrentPointLabel.Font = Enum.Font.SourceSans
-CurrentPointLabel.TextScaled = true
-CurrentPointLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-CurrentPointLabel.TextXAlignment = Enum.TextXAlignment.Right
-CurrentPointLabel.Text = "0"
+G2L["9"] = Instance.new("TextLabel", G2L["2"]);
+G2L["9"]["TextScaled"] = true;
+G2L["9"]["FontFace"] = Font.new([[rbxasset://fonts/families/SourceSansPro.json]], Enum.FontWeight.Regular, Enum.FontStyle.Normal);
+G2L["9"]["TextColor3"] = Color3.fromRGB(195, 195, 195);
+G2L["9"]["BackgroundTransparency"] = 1;
+G2L["9"]["Size"] = UDim2.new(0.223, 0, 0.080, 0);
+G2L["9"]["Text"] = [[0]];
+G2L["9"]["Name"] = [[StartPointLabel]];
+G2L["9"]["Position"] = UDim2.new(0.250, 0, 0.336, 0);
+G2L["9"]["TextXAlignment"] = Enum.TextXAlignment.Right;
 
-local PlayBtn = Instance.new("TextButton", MainFrame)
-PlayBtn.Name = "PlayBtn"
-PlayBtn.BackgroundColor3 = Color3.fromRGB(47, 0, 117)
-PlayBtn.Position = UDim2.new(0.09272, 0, 0.69276, 0)
-PlayBtn.Size = UDim2.new(0.81017, 0, 0.09786, 0)
-PlayBtn.Font = Enum.Font.SourceSans
-PlayBtn.TextScaled = true
-PlayBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-PlayBtn.Text = "Start Farm"
-Instance.new("UICorner", PlayBtn).CornerRadius = UDim.new(0.1, 0)
+G2L["a"] = Instance.new("TextLabel", G2L["2"]);
+G2L["a"]["TextScaled"] = true;
+G2L["a"]["FontFace"] = Font.new([[rbxasset://fonts/families/SourceSansPro.json]], Enum.FontWeight.Regular, Enum.FontStyle.Normal);
+G2L["a"]["TextColor3"] = Color3.fromRGB(255, 255, 255);
+G2L["a"]["BackgroundTransparency"] = 1;
+G2L["a"]["Size"] = UDim2.new(0.204, 0, 0.080, 0);
+G2L["a"]["Text"] = [[0]];
+G2L["a"]["Name"] = [[EaernedPoinLabel]];
+G2L["a"]["Position"] = UDim2.new(0.268, 0, 0.507, 0);
+G2L["a"]["TextXAlignment"] = Enum.TextXAlignment.Right;
 
-local ShopBtn = Instance.new("TextButton", MainFrame)
-ShopBtn.Name = "ShopBtn"
-ShopBtn.BackgroundColor3 = Color3.fromRGB(122, 113, 15)
-ShopBtn.Position = UDim2.new(0.09272, 0, 0.81682, 0)
-ShopBtn.Size = UDim2.new(0.81017, 0, 0.09786, 0)
-ShopBtn.Font = Enum.Font.SourceSans
-ShopBtn.TextScaled = true
-ShopBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-ShopBtn.Text = "Open Shops"
-Instance.new("UICorner", ShopBtn).CornerRadius = UDim.new(0.1, 0)
+G2L["b"] = Instance.new("TextLabel", G2L["2"]);
+G2L["b"]["TextScaled"] = true;
+G2L["b"]["FontFace"] = Font.new([[rbxasset://fonts/families/SourceSansPro.json]], Enum.FontWeight.Regular, Enum.FontStyle.Normal);
+G2L["b"]["TextColor3"] = Color3.fromRGB(255, 255, 255);
+G2L["b"]["BackgroundTransparency"] = 1;
+G2L["b"]["Size"] = UDim2.new(0.239, 0, 0.080, 0);
+G2L["b"]["Text"] = [[Earned Point :]];
+G2L["b"]["Position"] = UDim2.new(0.065, 0, 0.508, 0);
+G2L["b"]["TextXAlignment"] = Enum.TextXAlignment.Left;
 
-local OpenBtn = Instance.new("TextButton", QuestBossGui)
-OpenBtn.Name = "OpenBtn"
-OpenBtn.BackgroundColor3 = Color3.fromRGB(67, 0, 2)
-OpenBtn.Position = UDim2.new(0.66437, 0, 0.17778, 0)
-OpenBtn.Size = UDim2.new(0.05941, 0, 0.10648, 0)
-OpenBtn.Text = ""
-Instance.new("UICorner", OpenBtn).CornerRadius = UDim.new(1, 0)
+G2L["c"] = Instance.new("TextLabel", G2L["2"]);
+G2L["c"]["TextScaled"] = true;
+G2L["c"]["FontFace"] = Font.new([[rbxasset://fonts/families/SourceSansPro.json]], Enum.FontWeight.Regular, Enum.FontStyle.Normal);
+G2L["c"]["TextColor3"] = Color3.fromRGB(255, 255, 255);
+G2L["c"]["BackgroundTransparency"] = 1;
+G2L["c"]["Size"] = UDim2.new(0.204, 0, 0.080, 0);
+G2L["c"]["Text"] = [[0]];
+G2L["c"]["Name"] = [[CurrentPointLabel]];
+G2L["c"]["Position"] = UDim2.new(0.268, 0, 0.580, 0);
+G2L["c"]["TextXAlignment"] = Enum.TextXAlignment.Right;
 
-local OpenStroke = Instance.new("UIStroke", OpenBtn)
-OpenStroke.Thickness = 0.05
-OpenStroke.StrokeSizingMode = Enum.StrokeSizingMode.ScaledSize
-OpenStroke.Color = Color3.fromRGB(255, 225, 238)
+G2L["d"] = Instance.new("TextLabel", G2L["2"]);
+G2L["d"]["TextScaled"] = true;
+G2L["d"]["FontFace"] = Font.new([[rbxasset://fonts/families/SourceSansPro.json]], Enum.FontWeight.Regular, Enum.FontStyle.Normal);
+G2L["d"]["TextColor3"] = Color3.fromRGB(255, 255, 255);
+G2L["d"]["BackgroundTransparency"] = 1;
+G2L["d"]["Size"] = UDim2.new(0.284, 0, 0.080, 0);
+G2L["d"]["Text"] = [[Current Point :]];
+G2L["d"]["Position"] = UDim2.new(0.065, 0, 0.580, 0);
+G2L["d"]["TextXAlignment"] = Enum.TextXAlignment.Left;
 
-local OpenImg = Instance.new("ImageLabel", OpenBtn)
-OpenImg.BackgroundTransparency = 1
-OpenImg.Size = UDim2.new(1, 0, 1, 0)
-OpenImg.Image = "rbxassetid://204958628"
+G2L["e"] = Instance.new("TextButton", G2L["2"]);
+G2L["e"]["TextScaled"] = true;
+G2L["e"]["TextColor3"] = Color3.fromRGB(255, 255, 255);
+G2L["e"]["BackgroundColor3"] = Color3.fromRGB(47, 0, 117);
+G2L["e"]["FontFace"] = Font.new([[rbxasset://fonts/families/SourceSansPro.json]], Enum.FontWeight.Bold, Enum.FontStyle.Normal);
+G2L["e"]["Size"] = UDim2.new(0.418, 0, 0.098, 0);
+G2L["e"]["Text"] = [[Start Farm]];
+G2L["e"]["Name"] = [[PlayBtn]];
+G2L["e"]["Position"] = UDim2.new(0.512, 0, 0.795, 0);
+
+G2L["f"] = Instance.new("UICorner", G2L["e"]);
+G2L["f"]["CornerRadius"] = UDim.new(0.1, 0);
+
+G2L["10"] = Instance.new("TextButton", G2L["2"]);
+G2L["10"]["TextScaled"] = true;
+G2L["10"]["TextColor3"] = Color3.fromRGB(255, 255, 255);
+G2L["10"]["BackgroundColor3"] = Color3.fromRGB(122, 113, 15);
+G2L["10"]["FontFace"] = Font.new([[rbxasset://fonts/families/SourceSansPro.json]], Enum.FontWeight.Bold, Enum.FontStyle.Normal);
+G2L["10"]["Size"] = UDim2.new(0.418, 0, 0.097, 0);
+G2L["10"]["Text"] = [[Open Shops]];
+G2L["10"]["Name"] = [[ShopBtn]];
+G2L["10"]["Position"] = UDim2.new(0.067, 0, 0.797, 0);
+
+G2L["11"] = Instance.new("UICorner", G2L["10"]);
+G2L["11"]["CornerRadius"] = UDim.new(0.1, 0);
+
+G2L["12"] = Instance.new("TextBox", G2L["2"]);
+G2L["12"]["Name"] = [[InputPoin]];
+G2L["12"]["TextScaled"] = true;
+G2L["12"]["BackgroundColor3"] = Color3.fromRGB(255, 255, 255);
+G2L["12"]["FontFace"] = Font.new([[rbxasset://fonts/families/Arial.json]], Enum.FontWeight.Bold, Enum.FontStyle.Normal);
+G2L["12"]["PlaceholderText"] = [[Target Point]];
+G2L["12"]["Size"] = UDim2.new(0.35, 0, 0.07, 0);
+G2L["12"]["Position"] = UDim2.new(0.066, 0, 0.430, 0);
+G2L["12"]["Text"] = [[]];
+
+G2L["13"] = Instance.new("UICorner", G2L["12"]);
+G2L["13"]["CornerRadius"] = UDim.new(0.2, 0);
+
+G2L["14"] = Instance.new("TextLabel", G2L["2"]);
+G2L["14"]["TextScaled"] = true;
+G2L["14"]["FontFace"] = Font.new([[rbxasset://fonts/families/SourceSansPro.json]], Enum.FontWeight.Regular, Enum.FontStyle.Normal);
+G2L["14"]["TextColor3"] = Color3.fromRGB(255, 255, 255);
+G2L["14"]["BackgroundTransparency"] = 1;
+G2L["14"]["Size"] = UDim2.new(0.234, 0, 0.080, 0);
+G2L["14"]["Text"] = [[End Farm :]];
+G2L["14"]["Position"] = UDim2.new(0.065, 0, 0.659, 0);
+G2L["14"]["TextXAlignment"] = Enum.TextXAlignment.Left;
+
+G2L["15"] = Instance.new("TextLabel", G2L["2"]);
+G2L["15"]["TextScaled"] = true;
+G2L["15"]["FontFace"] = Font.new([[rbxasset://fonts/families/SourceSansPro.json]], Enum.FontWeight.Regular, Enum.FontStyle.Normal);
+G2L["15"]["TextColor3"] = Color3.fromRGB(255, 255, 255);
+G2L["15"]["BackgroundTransparency"] = 1;
+G2L["15"]["Size"] = UDim2.new(0.204, 0, 0.080, 0);
+G2L["15"]["Text"] = [[0]];
+G2L["15"]["Name"] = [[EndFarmTotal]];
+G2L["15"]["Position"] = UDim2.new(0.268, 0, 0.659, 0);
+G2L["15"]["TextXAlignment"] = Enum.TextXAlignment.Right;
+
+G2L["16"] = Instance.new("TextLabel", G2L["2"]);
+G2L["16"]["TextScaled"] = true;
+G2L["16"]["FontFace"] = Font.new([[rbxasset://fonts/families/FredokaOne.json]], Enum.FontWeight.Regular, Enum.FontStyle.Normal);
+G2L["16"]["TextColor3"] = Color3.fromRGB(249, 255, 211);
+G2L["16"]["BackgroundTransparency"] = 1;
+G2L["16"]["Size"] = UDim2.new(0.65, 0, 0.08, 0);
+G2L["16"]["Text"] = [[Idul Adha Quest 2026]];
+G2L["16"]["Position"] = UDim2.new(0.235, 0, 0.06, 0);
+G2L["16"]["TextXAlignment"] = Enum.TextXAlignment.Left;
+
+G2L["17"] = Instance.new("Frame", G2L["2"]);
+G2L["17"]["Size"] = UDim2.new(0.4, 0, 0.4, 0);
+G2L["17"]["Position"] = UDim2.new(0.512, 0, 0.349, 0);
+G2L["17"]["Name"] = [[ConfigFrame]];
+G2L["17"]["BackgroundTransparency"] = 1;
+
+G2L["18"] = Instance.new("TextLabel", G2L["17"]);
+G2L["18"]["TextScaled"] = true;
+G2L["18"]["FontFace"] = Font.new([[rbxasset://fonts/families/SourceSansPro.json]], Enum.FontWeight.Regular, Enum.FontStyle.Normal);
+G2L["18"]["TextColor3"] = Color3.fromRGB(255, 255, 255);
+G2L["18"]["BackgroundTransparency"] = 1;
+G2L["18"]["Size"] = UDim2.new(0.516, 0, 0.170, 0);
+G2L["18"]["Text"] = [[Speed Truck :]];
+G2L["18"]["Position"] = UDim2.new(-0.001, 0, 0.012, 0);
+G2L["18"]["TextXAlignment"] = Enum.TextXAlignment.Left;
+
+G2L["19"] = Instance.new("TextBox", G2L["17"]);
+G2L["19"]["Name"] = [[SpeedTruckInput]];
+G2L["19"]["TextScaled"] = true;
+G2L["19"]["TextColor3"] = Color3.fromRGB(255, 255, 255);
+G2L["19"]["FontFace"] = Font.new([[rbxasset://fonts/families/Arial.json]], Enum.FontWeight.Regular, Enum.FontStyle.Normal);
+G2L["19"]["Size"] = UDim2.new(0.3, 0, 0.170, 0);
+G2L["19"]["Position"] = UDim2.new(0.65, 0, 0.012, 0);
+G2L["19"]["Text"] = [[180]];
+G2L["19"]["BackgroundTransparency"] = 1;
+
+G2L["1a"] = Instance.new("UICorner", G2L["19"]);
+G2L["1a"]["CornerRadius"] = UDim.new(0.2, 0);
+
+G2L["1b"] = Instance.new("UIStroke", G2L["19"]);
+G2L["1b"]["Color"] = Color3.fromRGB(255, 255, 255);
+
+G2L["1c"] = Instance.new("TextLabel", G2L["17"]);
+G2L["1c"]["TextScaled"] = true;
+G2L["1c"]["FontFace"] = Font.new([[rbxasset://fonts/families/SourceSansPro.json]], Enum.FontWeight.Regular, Enum.FontStyle.Normal);
+G2L["1c"]["TextColor3"] = Color3.fromRGB(255, 255, 255);
+G2L["1c"]["BackgroundTransparency"] = 1;
+G2L["1c"]["Size"] = UDim2.new(0.516, 0, 0.170, 0);
+G2L["1c"]["Text"] = [[Estimasi :]];
+G2L["1c"]["Position"] = UDim2.new(-0.001, 0, 0.222, 0);
+G2L["1c"]["TextXAlignment"] = Enum.TextXAlignment.Left;
+
+G2L["1d"] = Instance.new("TextLabel", G2L["17"]);
+G2L["1d"]["TextScaled"] = true;
+G2L["1d"]["FontFace"] = Font.new([[rbxasset://fonts/families/SourceSansPro.json]], Enum.FontWeight.Regular, Enum.FontStyle.Normal);
+G2L["1d"]["TextColor3"] = Color3.fromRGB(255, 255, 255);
+G2L["1d"]["BackgroundTransparency"] = 1;
+G2L["1d"]["Size"] = UDim2.new(0.516, 0, 0.170, 0);
+G2L["1d"]["Text"] = [[00:00]];
+G2L["1d"]["Name"] = [[EstimasiLabel]];
+G2L["1d"]["Position"] = UDim2.new(0.483, 0, 0.222, 0);
+G2L["1d"]["TextXAlignment"] = Enum.TextXAlignment.Right;
+
+G2L["1e"] = Instance.new("TextButton", G2L["1"]);
+G2L["1e"]["BackgroundColor3"] = Color3.fromRGB(67, 0, 2);
+G2L["1e"]["Size"] = UDim2.new(0.05, 0, 0.09, 0);
+G2L["1e"]["Text"] = [[]];
+G2L["1e"]["Name"] = [[OpenBtn]];
+G2L["1e"]["Position"] = UDim2.new(0.071, 0, 0.431, 0);
+
+G2L["1f"] = Instance.new("UICorner", G2L["1e"]);
+G2L["1f"]["CornerRadius"] = UDim.new(1, 0);
+
+G2L["20"] = Instance.new("ImageLabel", G2L["1e"]);
+G2L["20"]["Image"] = [[rbxassetid://204958628]];
+G2L["20"]["Size"] = UDim2.new(0.8, 0, 0.8, 0);
+G2L["20"]["Position"] = UDim2.new(0.1, 0, 0.1, 0);
+G2L["20"]["BackgroundTransparency"] = 1;
+
+G2L["21"] = Instance.new("UIStroke", G2L["1e"]);
+G2L["21"]["Color"] = Color3.fromRGB(255, 225, 238);
+G2L["21"]["ApplyStrokeMode"] = Enum.ApplyStrokeMode.Border;
 
 -- ==========================================
--- 2. SETUP PROFILE & POIN TRACKER
+-- 2. LOGIKA DRAG & KALKULASI UI
 -- ==========================================
+local button = G2L["1e"]
+local dragToggle, dragInput, dragStart, startPos
 
--- Set Foto Profil
-local successImg, resultImg = pcall(function()
-    return game:GetService("Players"):GetUserThumbnailAsync(player.UserId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size420x420)
+local function updateInput(input)
+    local delta = input.Position - dragStart
+    button.Position = UDim2.new(
+        startPos.X.Scale, startPos.X.Offset + delta.X, 
+        startPos.Y.Scale, startPos.Y.Offset + delta.Y
+    )
+end
+
+button.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        dragToggle = true; dragStart = input.Position; startPos = button.Position
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then dragToggle = false end
+        end)
+    end
 end)
-if successImg then PlrImg.Image = resultImg end
 
--- Set Nama Player
-PlrName.Text = "@" .. player.Name .. " / " .. player.DisplayName
+button.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+        dragInput = input
+    end
+end)
 
--- Fungsi Ambil Poin dari UI Game
-local function getPointsNum()
-    local eventShop = playerGui:FindFirstChild("EVENT SHOP")
-    if eventShop then
-        local valueLabel = eventShop:FindFirstChild("Shop", true)
-        if valueLabel then
-            local pointsText = valueLabel.Parent:FindFirstChild("PointsPill", true)
-            if pointsText and pointsText:FindFirstChild("Value") then
-                -- Menghapus semua karakter kecuali angka (mengatasi format "3.000 Points")
-                local rawText = pointsText.Value.Text
-                local numStr = string.gsub(rawText, "%D", "")
-                return tonumber(numStr) or 0
+UserInputService.InputChanged:Connect(function(input)
+    if input == dragInput and dragToggle then updateInput(input) end
+end)
+
+local mainFrame = G2L["2"]
+button.MouseButton1Click:Connect(function()
+    mainFrame.Visible = not mainFrame.Visible
+end)
+
+local inputPoin, estimasiLabel, endFarmTotal = G2L["12"], G2L["1d"], G2L["15"]
+local PoinPerSiklus, DetikPerSiklus, CurrentPoint = 100, 80, 0 
+
+inputPoin:GetPropertyChangedSignal("Text"):Connect(function()
+    local targetPoin = tonumber(inputPoin.Text) or 0
+    endFarmTotal.Text = tostring(CurrentPoint + targetPoin)
+    
+    local jumlahSiklus = math.ceil(targetPoin / PoinPerSiklus)
+    local totalDetik = jumlahSiklus * DetikPerSiklus
+    
+    local jam = math.floor(totalDetik / 3600)
+    local menit = math.floor((totalDetik % 3600) / 60)
+    estimasiLabel.Text = string.format("%02d:%02d", jam, menit)
+end)
+
+-- ==========================================
+-- 3. COLLISION SYSTEM (MASJID & SAPI)
+-- ==========================================
+local noclipSapiAktif = false
+
+task.spawn(function()
+    print("[INFO] Anti-Tabrak Masjid Permanen ON.")
+    while task.wait(1) do 
+        local eventFolder = workspace:FindFirstChild("Event")
+        if eventFolder then
+            for _, objek in ipairs(eventFolder:GetDescendants()) do
+                if string.match(objek.Name, "Masjid") and objek:IsA("Model") then
+                    for _, part in ipairs(objek:GetDescendants()) do
+                        if part:IsA("BasePart") and part.CanCollide then
+                            part.CanCollide = false
+                        end
+                    end
+                end
             end
         end
     end
-    return 0
+end)
+
+local function jalankanAntiTabrakSapi()
+    if noclipSapiAktif then return end 
+    noclipSapiAktif = true
+    task.spawn(function()
+        print("[INFO] Anti-Tabrak Sapi ON (Fase Darat).")
+        while noclipSapiAktif and task.wait(1) do 
+            for _, objek in ipairs(workspace:GetChildren()) do
+                if string.match(objek.Name, "^Cow_") then
+                    for _, part in ipairs(objek:GetDescendants()) do
+                        if part:IsA("BasePart") and part.CanCollide then part.CanCollide = false end
+                    end
+                end
+            end
+        end
+        print("[INFO] Anti-Tabrak Sapi OFF (Fase Truk). Loop dihentikan.")
+    end)
 end
 
--- Variabel State
-local startingPoints = getPointsNum()
+-- ==========================================
+-- 4. LOGIKA AUTO FARM & FUNGSI UTAMA
+-- ==========================================
 local isFarming = false
-
--- Update Label Awal
-StartPointLabel.Text = tostring(startingPoints)
-CurrentPointLabel.Text = tostring(startingPoints)
-EaernedPoinLabel.Text = "0"
-
--- Loop Update Poin Realtime
-task.spawn(function()
-    while task.wait(1) do
-        local current = getPointsNum()
-        CurrentPointLabel.Text = tostring(current)
-        EaernedPoinLabel.Text = tostring(current - startingPoints)
-    end
-end)
-
--- ==========================================
--- 3. LOGIC TOMBOL UI UTAMA
--- ==========================================
-
--- Toggle MainFrame
-MainFrame.Visible = true
-OpenBtn.MouseButton1Click:Connect(function()
-    MainFrame.Visible = not MainFrame.Visible
-end)
-
--- Buka Event Shop
-ShopBtn.MouseButton1Click:Connect(function()
-    local eventShop = playerGui:FindFirstChild("EVENT SHOP")
-    if eventShop then
-        eventShop.Enabled = not eventShop.Enabled
-    else
-        warn("UI EVENT SHOP tidak ditemukan!")
-    end
-end)
-
-
--- ==========================================
--- 4. FUNGSI MINIGAME & TRUK (DARI SCRIPT LAMA)
--- ==========================================
+local speedTruckInput = G2L["19"]
+local playBtn = G2L["e"]
 
 local function eksekusiKlik(tombol)
     if not tombol then return end
-    if firesignal then
-        firesignal(tombol.Activated)
-        firesignal(tombol.MouseButton1Click)
+    if firesignal then firesignal(tombol.Activated); firesignal(tombol.MouseButton1Click)
     elseif getconnections then
         for _, conn in pairs(getconnections(tombol.Activated)) do conn:Fire() end
         for _, conn in pairs(getconnections(tombol.MouseButton1Click)) do conn:Fire() end
@@ -240,47 +374,51 @@ end
 
 local function cariSapi(daftarAbaikan)
     daftarAbaikan = daftarAbaikan or {}
+    local sapiCadangan = nil
+
     for _, objek in ipairs(workspace:GetChildren()) do
         if string.match(objek.Name, "^Cow_") then
             local sudahDikerjakan = false
             for _, sapiLama in ipairs(daftarAbaikan) do
-                if objek == sapiLama then sudahDikerjakan = true break end
+                if objek == sapiLama then sudahDikerjakan = true; break end
             end
-            
+
             if not sudahDikerjakan then
-                return objek
+                local baseScale = objek:GetAttribute("BaseScale")
+                local mutations = objek:GetAttribute("Mutations")
+                
+                local isGiant = (type(baseScale) == "number" and baseScale > 0.38)
+                local isMutant = (mutations ~= nil and mutations ~= "" and mutations ~= "None")
+
+                if isGiant or isMutant then
+                    print("  [⭐] Sapi Spesial Ditemukan! (Giant/Mutant) -> " .. objek.Name)
+                    return objek 
+                else
+                    if not sapiCadangan then sapiCadangan = objek end
+                end
             end
         end
     end
-    return nil
+    
+    if sapiCadangan then print("  [Normal] Ambil sapi biasa -> " .. sapiCadangan.Name) end
+    return sapiCadangan
 end
 
 local function selesaikanTugasSapiAkurat()
-    local minigameGui = playerGui:WaitForChild("QurbanMinigameGui", 10)
-    if not minigameGui then 
-        warn("[ERROR] UI QurbanMinigameGui tidak muncul!")
-        return false
-    end
+    local minigameGui = playerGui:WaitForChild("QurbanMinigameGui", 5)
+    if not minigameGui then return false end
     
     local main = minigameGui:WaitForChild("Main")
     local mobileButtons = minigameGui:WaitForChild("MobileButtons")
     local instructionLbl = main:WaitForChild("Instruction")
     local counterLbl = main:WaitForChild("MashCounter")
     
-    local ronde = 1
-    local maxRonde = 12 
-    
+    local ronde, maxRonde = 1, 12 
     while minigameGui.Enabled and ronde <= maxRonde and isFarming do
-        print("  [Ronde " .. ronde .. "] Menunggu tugas...")
-        
-        local tombolPertama = nil
-        local waktuTunggu = tick()
+        local tombolPertama, waktuTunggu = nil, tick()
         repeat
             for _, child in ipairs(mobileButtons:GetChildren()) do
-                if string.match(child.Name, "^BtnKey_") then
-                    tombolPertama = child
-                    break
-                end
+                if string.match(child.Name, "^BtnKey_") then tombolPertama = child break end
             end
             task.wait(0.1)
         until tombolPertama or (tick() - waktuTunggu > 10) or not minigameGui.Enabled or not isFarming
@@ -288,40 +426,28 @@ local function selesaikanTugasSapiAkurat()
         if not minigameGui.Enabled or not isFarming then break end
         if not tombolPertama then return false end
 
-        local instText = instructionLbl.Text
-        local countText = counterLbl.Text
-        local tipeSoal = ""
-        local urutanTombol = {}
-        local targetClicks = 1
+        local instText, countText = instructionLbl.Text, counterLbl.Text
+        local tipeSoal, urutanTombol, targetClicks = "", {}, 1
 
-        if string.find(instText, ">") or string.find(instText, "→") or string.find(instText, "➔") or string.find(instText, "➡") then
+        if string.find(instText, ">") or string.find(instText, "→") then
             tipeSoal = "SEQUENCE"
             for huruf in string.gmatch(instText, "%u") do table.insert(urutanTombol, huruf) end
         elseif string.find(string.lower(instText), "get ready") then
             tipeSoal = "READY"
-            targetClicks = 1
             local huruf = string.match(instText, "%[(%u)%]") or string.match(string.upper(string.gsub(string.lower(instText), "get ready", "")), "%u")
             if huruf then table.insert(urutanTombol, huruf) end
         else
             tipeSoal = "TAP"
             local huruf = string.match(instText, "%[(%u)%]") or string.match(string.upper(string.gsub(string.lower(instText), "tap", "")), "%u")
             if huruf then table.insert(urutanTombol, huruf) end
-            
             local angkaTarget = string.match(countText, "/%s*(%d+)")
-            if angkaTarget then targetClicks = tonumber(angkaTarget)
-            else
-                local angkaTunggal = string.match(countText, "%d+")
-                if angkaTunggal then targetClicks = tonumber(angkaTunggal) end
-            end
+            if angkaTarget then targetClicks = tonumber(angkaTarget) else targetClicks = tonumber(string.match(countText, "%d+")) or 1 end
         end
 
         if tipeSoal == "SEQUENCE" then
             for _, huruf in ipairs(urutanTombol) do
                 local btnTarget = mobileButtons:WaitForChild("BtnKey_" .. huruf, 3)
-                if btnTarget then
-                    eksekusiKlik(btnTarget)
-                    task.wait(0.3)
-                end
+                if btnTarget then eksekusiKlik(btnTarget); task.wait(0.3) end
             end
         else
             local hurufTarget = urutanTombol[1]
@@ -330,8 +456,7 @@ local function selesaikanTugasSapiAkurat()
                 if btnTarget then
                     for i = 1, targetClicks do
                         if not btnTarget.Parent or not minigameGui.Enabled or not isFarming then break end
-                        eksekusiKlik(btnTarget)
-                        task.wait(0.1) 
+                        eksekusiKlik(btnTarget); task.wait(0.1) 
                     end
                 end
             end
@@ -345,217 +470,107 @@ local function selesaikanTugasSapiAkurat()
             task.wait(0.1)
         until not masihAda or not minigameGui.Enabled or not isFarming
         
-        task.wait(0.5) 
-        ronde = ronde + 1
+        task.wait(0.5); ronde = ronde + 1
     end
-    
     return true
 end
 
 local function jalankanAutoFarmSapi()
+    jalankanAntiTabrakSapi()
     local character = player.Character or player.CharacterAdded:Wait()
     local hrp = character:WaitForChild("HumanoidRootPart")
     
     local targetNPC = workspace:WaitForChild("Event"):WaitForChild("NPC"):FindFirstChild("DA0ZA")
     if targetNPC then
-        print("[1] Memulai Quest DA0ZA...")
         hrp.CFrame = targetNPC:GetPivot() * CFrame.new(0, 0, 3)
         task.wait(0.5)
-        
         local prompt = targetNPC:FindFirstChildWhichIsA("ProximityPrompt", true)
         if prompt then
-            fireproximityprompt(prompt)
-            task.wait(1) 
-            
-            local args = { { dialogId = "QurbanIntro", response = "accept" } }
-            local remote = replicatedStorage:WaitForChild("EventAsset"):WaitForChild("QurbanRemotes"):WaitForChild("DialogResponse")
-            remote:FireServer(unpack(args))
+            fireproximityprompt(prompt); task.wait(1) 
+            replicatedStorage:WaitForChild("EventAsset"):WaitForChild("QurbanRemotes"):WaitForChild("DialogResponse"):FireServer({ dialogId = "QurbanIntro", response = "accept" })
         end
     end
     
     local sapiSelesai = {} 
-    
     for urutan = 1, 4 do
         if not isFarming then break end
-        print("[2] Mencari Sapi ke-" .. urutan .. " dari 4...")
-        
         if urutan == 1 then task.wait(3) end
         
         local sapiTarget = cariSapi(sapiSelesai)
         local waktuTunggu = tick()
         while not sapiTarget and (tick() - waktuTunggu < 20) and isFarming do
-            task.wait(1)
-            sapiTarget = cariSapi(sapiSelesai)
+            task.wait(1); sapiTarget = cariSapi(sapiSelesai)
         end
         
         if sapiTarget then
-            hrp.CFrame = sapiTarget:GetPivot() * CFrame.new(0, 0, 3)
-            task.wait(0.5)
-            
+            hrp.CFrame = sapiTarget:GetPivot() * CFrame.new(0, 0, 3); task.wait(0.5)
             local promptSapi = sapiTarget:FindFirstChildWhichIsA("ProximityPrompt", true)
             if promptSapi then
-                fireproximityprompt(promptSapi)
-                task.wait(1)
-                
-                if selesaikanTugasSapiAkurat() then
-                    table.insert(sapiSelesai, sapiTarget)
-                end
+                fireproximityprompt(promptSapi); task.wait(1)
+                if selesaikanTugasSapiAkurat() then table.insert(sapiSelesai, sapiTarget) end
             end
-        else
-            break 
-        end
+        else break end
     end
     return true
 end
 
-local function nonaktifkanTabrakanMasjidPermanen()
-    task.spawn(function()
-        local eventFolder = workspace:FindFirstChild("Event")
-        if eventFolder then
-            for _, objek in ipairs(eventFolder:GetDescendants()) do
-                if string.match(objek.Name, "Masjid") and objek:IsA("Model") then
-                    for _, part in ipairs(objek:GetDescendants()) do
-                        if part:IsA("BasePart") and part.CanCollide then
-                            part.CanCollide = false
-                        end
-                    end
-                end
-            end
-        end
-    end)
-end
-
+-- ==========================================
+-- 5. TRUCK FLIGHT SYSTEM
+-- ==========================================
 local cacheFisikaTruk = {}
 local function aturFisikaTruk(truk, modeNormal)
     for _, part in ipairs(truk:GetDescendants()) do
         if part:IsA("BasePart") then
             if not modeNormal then
-                if cacheFisikaTruk[part] == nil then
-                    cacheFisikaTruk[part] = { Collide = part.CanCollide, Anchor = part.Anchored }
-                end
-                part.CanCollide = false
-                part.Anchored = true
+                if cacheFisikaTruk[part] == nil then cacheFisikaTruk[part] = { Collide = part.CanCollide, Anchor = part.Anchored } end
+                part.CanCollide = false; part.Anchored = true
             else
-                if cacheFisikaTruk[part] ~= nil then
-                    part.CanCollide = cacheFisikaTruk[part].Collide
-                    part.Anchored = cacheFisikaTruk[part].Anchor
-                else
-                    part.CanCollide = true
-                    part.Anchored = false
-                end
-                part.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
-                part.AssemblyAngularVelocity = Vector3.new(0, 0, 0)
+                if cacheFisikaTruk[part] ~= nil then part.CanCollide = cacheFisikaTruk[part].Collide; part.Anchored = cacheFisikaTruk[part].Anchor
+                else part.CanCollide = true; part.Anchored = false end
+                part.AssemblyLinearVelocity = Vector3.new(0, 0, 0); part.AssemblyAngularVelocity = Vector3.new(0, 0, 0)
             end
         end
     end
-end
-
-local function cariMasjidTerdekat(posisiTruk)
-    local masjidTerdekat = nil
-    local jarakTerpendek = math.huge 
-    local eventFolder = workspace:FindFirstChild("Event")
-    if not eventFolder then return nil end
-
-    for _, objek in ipairs(eventFolder:GetDescendants()) do
-        if string.match(objek.Name, "Masjid") and objek:IsA("Model") then
-            local posisiMasjid = objek:GetPivot().Position
-            local jarak = (posisiMasjid - posisiTruk).Magnitude
-            if jarak < jarakTerpendek then
-                jarakTerpendek = jarak
-                masjidTerdekat = objek
-            end
-        end
-    end
-    return masjidTerdekat
 end
 
 local function jalankanTrukModeAman()
-    nonaktifkanTabrakanMasjidPermanen()
-    local vehicleFolder = workspace:FindFirstChild("Vehicles")
-    local trukTarget = nil
-    if vehicleFolder then
-        for _, objek in ipairs(vehicleFolder:GetChildren()) do
-            if string.match(objek.Name, "^QurbanTruck_") then
-                trukTarget = objek
-                break
-            end
-        end
+    noclipSapiAktif = false
+    local trukTarget, tujuan = nil, workspace:FindFirstChild("DestinationBeacon")
+    for _, objek in ipairs(workspace:FindFirstChild("Vehicles"):GetChildren()) do
+        if string.match(objek.Name, "^QurbanTruck_") then trukTarget = objek break end
     end
     
-    local tujuan = workspace:FindFirstChild("DestinationBeacon")
-    
     if trukTarget and tujuan then
-        local KETINGGIAN_TERBANG = 400 
-        local KECEPATAN_CEPAT = 100 
+        local KECEPATAN_CEPAT = tonumber(speedTruckInput.Text) or 100 
         local KECEPATAN_PELAN = 50  
         
-        local startCFrame = trukTarget:GetPivot()
-        local targetCFrame_Awal = tujuan:GetPivot()
+        local startCFrame, targetCFrame_Awal = trukTarget:GetPivot(), tujuan:GetPivot()
         
-        local origin = targetCFrame_Awal.Position
-        local direction = Vector3.new(0, -2000, 0) 
         local rayParams = RaycastParams.new()
         rayParams.FilterDescendantsInstances = {trukTarget} 
         rayParams.FilterType = Enum.RaycastFilterType.Exclude
         
-        local hitResult = workspace:Raycast(origin, direction, rayParams)
-        local posisiTanahCFrame = targetCFrame_Awal
-        if hitResult then
-            posisiTanahCFrame = CFrame.new(hitResult.Position) * targetCFrame_Awal.Rotation
-        end
+        local hitResult = workspace:Raycast(targetCFrame_Awal.Position, Vector3.new(0, -2000, 0), rayParams)
+        local posisiTanahCFrame = hitResult and (CFrame.new(hitResult.Position) * targetCFrame_Awal.Rotation) or targetCFrame_Awal
         
         local endCFrame = posisiTanahCFrame + Vector3.new(0, 3.5, 0) 
-        local waypoint1_Naik = startCFrame + Vector3.new(0, KETINGGIAN_TERBANG, 0)
-        local waypoint2_Maju = endCFrame + Vector3.new(0, KETINGGIAN_TERBANG, 0)
-        local waypoint3_Turun = endCFrame
-        
         local tweenValue = Instance.new("CFrameValue")
         tweenValue.Value = startCFrame
+        local koneksi = tweenValue.Changed:Connect(function(c) trukTarget:PivotTo(c) end)
         
-        local koneksi = tweenValue.Changed:Connect(function(cframeBaru)
-            trukTarget:PivotTo(cframeBaru)
-        end)
-        
-        local function terbangKeTitik(targetCFrame, namaFase, kecepatanAktif)
+        local function terbangKeTitik(tCFrame, kec)
             if not isFarming then return end
-            local jarak = (tweenValue.Value.Position - targetCFrame.Position).Magnitude
-            local waktu = jarak / kecepatanAktif
-            if waktu < 0.1 then waktu = 0.1 end 
-            
-            local gayaAnimasi = Enum.EasingStyle.Linear
-            local arahAnimasi = Enum.EasingDirection.InOut
-            if string.match(namaFase, "Mendarat") or string.match(namaFase, "Parkir") then
-                gayaAnimasi = Enum.EasingStyle.Sine
-                arahAnimasi = Enum.EasingDirection.Out
-            end
-            
-            local tweenInfo = TweenInfo.new(waktu, gayaAnimasi, arahAnimasi)
-            local tween = TweenService:Create(tweenValue, tweenInfo, {Value = targetCFrame})
-            tween:Play()
-            tween.Completed:Wait() 
+            local wkt = math.max((tweenValue.Value.Position - tCFrame.Position).Magnitude / kec, 0.1)
+            local twn = TweenService:Create(tweenValue, TweenInfo.new(wkt, Enum.EasingStyle.Linear), {Value = tCFrame})
+            twn:Play(); twn.Completed:Wait() 
         end
         
         aturFisikaTruk(trukTarget, false)
+        terbangKeTitik(startCFrame + Vector3.new(0, 400, 0), KECEPATAN_CEPAT)
+        terbangKeTitik(endCFrame + Vector3.new(0, 400, 0), KECEPATAN_CEPAT) 
+        terbangKeTitik(endCFrame, KECEPATAN_PELAN) 
         
-        terbangKeTitik(waypoint1_Naik, "1", KECEPATAN_CEPAT)
-        terbangKeTitik(waypoint2_Maju, "2", KECEPATAN_CEPAT) 
-        terbangKeTitik(waypoint3_Turun, "3", KECEPATAN_PELAN) 
-        
-        local masjidTarget = cariMasjidTerdekat(trukTarget:GetPivot().Position)
-        if masjidTarget then
-            local posisiMasjid = masjidTarget:GetPivot()
-            local waypoint4_Masjid = CFrame.new(
-                posisiMasjid.Position.X, 
-                posisiTanahCFrame.Position.Y + 3.5, 
-                posisiMasjid.Position.Z
-            ) * posisiMasjid.Rotation
-            terbangKeTitik(waypoint4_Masjid, "4", KECEPATAN_PELAN)
-        end
-        
-        koneksi:Disconnect()
-        tweenValue:Destroy()
-        task.wait(0.5)
-        
+        koneksi:Disconnect(); tweenValue:Destroy(); task.wait(0.5)
         local brakeEvent = trukTarget:FindFirstChild("Brakeoverheat")
         if brakeEvent then brakeEvent:FireServer("SoundUpdate", 0, "Sound1") end
         aturFisikaTruk(trukTarget, true)
@@ -563,59 +578,26 @@ local function jalankanTrukModeAman()
 end
 
 -- ==========================================
--- 5. LOOP UTAMA & EVENT PLAY BTN
+-- 6. MASTER TOGGLE
 -- ==========================================
-
-local function StartAutoFarmLoop()
-    while isFarming do
-        local successFarm, errFarm = pcall(jalankanAutoFarmSapi)
-        if not successFarm then warn("Error Sapi: " .. tostring(errFarm)) end
-        
-        task.wait(2) 
-        if not isFarming then break end
-        
-        local successTruk, errTruk = pcall(jalankanTrukModeAman)
-        if not successTruk then warn("Error Truk: " .. tostring(errTruk)) end
-        
-        task.wait(7)
-    end
-end
-
-PlayBtn.MouseButton1Click:Connect(function()
+playBtn.MouseButton1Click:Connect(function()
     isFarming = not isFarming
     if isFarming then
-        PlayBtn.Text = "Stop Farm"
-        PlayBtn.BackgroundColor3 = Color3.fromRGB(150, 0, 0)
+        playBtn.Text = "Stop Farm"
+        playBtn.BackgroundColor3 = Color3.fromRGB(150, 0, 0)
         
-        -- Reset start point patokan tiap kali mulai farming baru
-        startingPoints = getPointsNum()
-        StartPointLabel.Text = tostring(startingPoints)
-        
-        task.spawn(StartAutoFarmLoop)
+        task.spawn(function()
+            while isFarming do
+                pcall(jalankanAutoFarmSapi)
+                task.wait(1)
+                if not isFarming then break end
+                pcall(jalankanTrukModeAman)
+                task.wait(5)
+            end
+        end)
     else
-        PlayBtn.Text = "Start Farm"
-        PlayBtn.BackgroundColor3 = Color3.fromRGB(47, 0, 117)
+        playBtn.Text = "Start Farm"
+        playBtn.BackgroundColor3 = Color3.fromRGB(47, 0, 117)
+        noclipSapiAktif = false -- Pastikan noclip background mati saat stop
     end
-end)
-
--- ==========================================
--- FITUR ANTI-AFK (EXECUTOR LEVEL BYPASS)
--- ==========================================
-local VirtualUser = game:GetService("VirtualUser")
-
--- Metode 1: Mematikan sinyal "Idled" langsung dari core Roblox 
--- (Metode ini paling ampuh untuk Emulator karena tidak butuh window focus)
-local successAFK, errAFK = pcall(function()
-    if getconnections then
-        for _, conn in pairs(getconnections(player.Idled)) do
-            conn:Disable()
-        end
-    end
-end)
-
--- Metode 2: Fallback (Cadangan) jika eksekutor tidak mensupport getconnections
-player.Idled:Connect(function()
-    VirtualUser:CaptureController()
-    VirtualUser:ClickButton2(Vector2.new())
-    print("[Anti-AFK] Berhasil mencegah disconnect (Bypass 20 Menit).")
 end)
