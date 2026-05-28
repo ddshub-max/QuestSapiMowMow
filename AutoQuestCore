@@ -268,7 +268,7 @@ ShopBtn.MouseButton1Click:Connect(function()
 end)
 
 -- ==========================================
--- 3. SETUP PROFILE & POIN TRACKER ASLI
+-- 3. SETUP PROFILE, POIN TRACKER & REALTIME ESTIMASI
 -- ==========================================
 local successImg, resultImg = pcall(function()
     return game:GetService("Players"):GetUserThumbnailAsync(player.UserId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size420x420)
@@ -299,24 +299,33 @@ StartPointLabel.Text = tostring(startingPoints)
 CurrentPointLabel.Text = tostring(startingPoints)
 EaernedPoinLabel.Text = "0"
 
+-- Loop ini sekarang mengurus Poin DAN Estimasi Waktu secara Real-Time (tiap 1 detik)
 task.spawn(function()
     while task.wait(1) do
+        -- 1. Update Poin
         local current = getPointsNum()
+        local earned = current - startingPoints
         CurrentPointLabel.Text = tostring(current)
-        EaernedPoinLabel.Text = tostring(current - startingPoints)
+        EaernedPoinLabel.Text = tostring(earned)
+        
+        -- 2. Update Estimasi Real-Time (Countdown)
+        local targetPoin = tonumber(InputPoin.Text) or 0
+        if targetPoin > 0 then
+            local sisaPoin = targetPoin - earned
+            if sisaPoin < 0 then sisaPoin = 0 end -- Cegah angka minus jika poin sudah berlebih
+            
+            local PoinPerSiklus = 100 
+            local DetikPerSiklus = 80 
+            local jumlahSiklus = math.ceil(sisaPoin / PoinPerSiklus)
+            local totalDetik = jumlahSiklus * DetikPerSiklus
+            
+            local jam = math.floor(totalDetik / 3600)
+            local menit = math.floor((totalDetik % 3600) / 60)
+            EstimasiLabel.Text = string.format("%02d:%02d", jam, menit)
+        else
+            EstimasiLabel.Text = "00:00"
+        end
     end
-end)
-
-InputPoin:GetPropertyChangedSignal("Text"):Connect(function()
-    local targetPoin = tonumber(InputPoin.Text) or 0
-    local PoinPerSiklus = 100 
-    local DetikPerSiklus = 80 
-    local jumlahSiklus = math.ceil(targetPoin / PoinPerSiklus)
-    local totalDetik = jumlahSiklus * DetikPerSiklus
-    
-    local jam = math.floor(totalDetik / 3600)
-    local menit = math.floor((totalDetik % 3600) / 60)
-    EstimasiLabel.Text = string.format("%02d:%02d", jam, menit)
 end)
 
 -- ==========================================
@@ -561,31 +570,60 @@ local function jalankanTrukModeAman()
         local posisiTanahCFrame = hitResult and (CFrame.new(hitResult.Position) * targetCFrame_Awal.Rotation) or targetCFrame_Awal
         
         local endCFrame = posisiTanahCFrame + Vector3.new(0, 3.5, 0) 
+        
+        local waypoint1_Naik = startCFrame + Vector3.new(0, 400, 0)
+        local waypoint2_Maju = endCFrame + Vector3.new(0, 400, 0)
+        local waypoint3_Turun = endCFrame
+
         local tweenValue = Instance.new("CFrameValue")
         tweenValue.Value = startCFrame
         local koneksi = tweenValue.Changed:Connect(function(c) trukTarget:PivotTo(c) end)
         
-        local function terbangKeTitik(tCFrame, kec)
+        -- [LOGIKA TWEEN DIKEMBALIKAN KE ASLI]
+        local function terbangKeTitik(targetCFrame, namaFase, kecepatanAktif)
             if not isFarming then return end
-            local wkt = math.max((tweenValue.Value.Position - tCFrame.Position).Magnitude / kec, 0.1)
-            local twn = TweenService:Create(tweenValue, TweenInfo.new(wkt, Enum.EasingStyle.Linear), {Value = tCFrame})
-            twn:Play(); twn.Completed:Wait() 
+            
+            local jarak = (tweenValue.Value.Position - targetCFrame.Position).Magnitude
+            local waktu = jarak / kecepatanAktif
+            if waktu < 0.1 then waktu = 0.1 end 
+            
+            local gayaAnimasi = Enum.EasingStyle.Linear
+            local arahAnimasi = Enum.EasingDirection.InOut
+            
+            -- Pengereman (Sine Out) aktif khusus saat mendarat/parkir agar fisika tidak kaget
+            if string.match(namaFase, "Mendarat") or string.match(namaFase, "Parkir") then
+                gayaAnimasi = Enum.EasingStyle.Sine
+                arahAnimasi = Enum.EasingDirection.Out
+            end
+            
+            local tweenInfo = TweenInfo.new(waktu, gayaAnimasi, arahAnimasi)
+            local twn = TweenService:Create(tweenValue, tweenInfo, {Value = targetCFrame})
+            twn:Play()
+            twn.Completed:Wait() 
         end
         
         aturFisikaTruk(trukTarget, false)
-        terbangKeTitik(startCFrame + Vector3.new(0, 400, 0), KECEPATAN_CEPAT)
-        terbangKeTitik(endCFrame + Vector3.new(0, 400, 0), KECEPATAN_CEPAT) 
-        terbangKeTitik(endCFrame, KECEPATAN_PELAN) 
+        
+        terbangKeTitik(waypoint1_Naik, "1 (Lepas Landas)", KECEPATAN_CEPAT)
+        terbangKeTitik(waypoint2_Maju, "2 (Mengudara)", KECEPATAN_CEPAT) 
+        terbangKeTitik(waypoint3_Turun, "3 (Mendarat)", KECEPATAN_PELAN) 
         
         local masjidTarget = cariMasjidTerdekat(trukTarget:GetPivot().Position)
         if masjidTarget then
             local p = masjidTarget:GetPivot()
-            terbangKeTitik(CFrame.new(p.Position.X, posisiTanahCFrame.Position.Y + 3.5, p.Position.Z) * p.Rotation, KECEPATAN_PELAN)
+            local waypoint4_Masjid = CFrame.new(p.Position.X, posisiTanahCFrame.Position.Y + 3.5, p.Position.Z) * p.Rotation
+            terbangKeTitik(waypoint4_Masjid, "4 (Parkir)", KECEPATAN_PELAN)
         end
         
-        koneksi:Disconnect(); tweenValue:Destroy(); task.wait(0.5)
+        koneksi:Disconnect()
+        tweenValue:Destroy()
+        
+        -- Jeda ekstra untuk penyelarasan server sebelum un-anchor
+        task.wait(0.5)
+        
         local brakeEvent = trukTarget:FindFirstChild("Brakeoverheat")
         if brakeEvent then brakeEvent:FireServer("SoundUpdate", 0, "Sound1") end
+        
         aturFisikaTruk(trukTarget, true)
     end
 end
