@@ -597,3 +597,25 @@ PlayBtn.MouseButton1Click:Connect(function()
         PlayBtn.BackgroundColor3 = Color3.fromRGB(47, 0, 117)
     end
 end)
+
+-- ==========================================
+-- FITUR ANTI-AFK (EXECUTOR LEVEL BYPASS)
+-- ==========================================
+local VirtualUser = game:GetService("VirtualUser")
+
+-- Metode 1: Mematikan sinyal "Idled" langsung dari core Roblox 
+-- (Metode ini paling ampuh untuk Emulator karena tidak butuh window focus)
+local successAFK, errAFK = pcall(function()
+    if getconnections then
+        for _, conn in pairs(getconnections(player.Idled)) do
+            conn:Disable()
+        end
+    end
+end)
+
+-- Metode 2: Fallback (Cadangan) jika eksekutor tidak mensupport getconnections
+player.Idled:Connect(function()
+    VirtualUser:CaptureController()
+    VirtualUser:ClickButton2(Vector2.new())
+    print("[Anti-AFK] Berhasil mencegah disconnect (Bypass 20 Menit).")
+end)
