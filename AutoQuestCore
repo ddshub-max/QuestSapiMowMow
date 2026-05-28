@@ -1,10 +1,230 @@
+--[=[
+  d888b   db    db d888888b      .d888b.      db      db    db  .d8b.  
+ 88' Y8b 88    88    `88'        VP  `8D      88      88    88 d8' `8b 
+ 88      88    88     88           odD'       88      88    88 88ooo88 
+ 88  ooo 88    88     88          .88'        88      88    88 88~~~88 
+ 88. ~8~ 88b  d88    .88.        j88.         88booo. 88b  d88 88   88    @uniquadev
+  Y888P  ~Y8888P' Y888888P       888888D      Y88888P ~Y8888P' YP   YP  CONVERTER 
+]=]
+
 local player = game:GetService("Players").LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
 local replicatedStorage = game:GetService("ReplicatedStorage")
 local TweenService = game:GetService("TweenService")
 
 -- ==========================================
--- 1. FUNGSI PEMBANTU (HELPERS)
+-- 1. PEMBUATAN UI (G2L KE INSTANCE LANGSUNG)
+-- ==========================================
+local QuestBossGui = Instance.new("ScreenGui")
+QuestBossGui.Name = "QuestBossGui"
+QuestBossGui.IgnoreGuiInset = true
+QuestBossGui.ScreenInsets = Enum.ScreenInsets.DeviceSafeInsets
+QuestBossGui.ResetOnSpawn = false
+QuestBossGui.DisplayOrder = 999999
+QuestBossGui.Parent = playerGui
+
+local MainFrame = Instance.new("Frame", QuestBossGui)
+MainFrame.Name = "MainFrame"
+MainFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+MainFrame.BackgroundTransparency = 0.45
+MainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+MainFrame.Position = UDim2.new(0.84601, 0, 0.4148, 0)
+MainFrame.Size = UDim2.new(0.23606, 0, 0.47311, 0)
+MainFrame.BorderSizePixel = 0
+Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0.02, 0)
+Instance.new("UIStroke", MainFrame)
+
+local PlrImg = Instance.new("ImageLabel", MainFrame)
+PlrImg.Name = "PlrImg"
+PlrImg.BackgroundTransparency = 1
+PlrImg.Position = UDim2.new(0.33334, 0, 0.06888, 0)
+PlrImg.Size = UDim2.new(0.33113, 0, 0.29357, 0)
+Instance.new("UICorner", PlrImg).CornerRadius = UDim.new(1, 0)
+
+local PlrName = Instance.new("TextLabel", MainFrame)
+PlrName.Name = "PlrName"
+PlrName.BackgroundTransparency = 1
+PlrName.Position = UDim2.new(0.07947, 0, 0.3815, 0)
+PlrName.Size = UDim2.new(0.83886, 0, 0.07828, 0)
+PlrName.Font = Enum.Font.SourceSansBold
+PlrName.TextScaled = true
+PlrName.TextColor3 = Color3.fromRGB(255, 255, 255)
+
+local LblStart = Instance.new("TextLabel", MainFrame)
+LblStart.BackgroundTransparency = 1
+LblStart.Position = UDim2.new(0.09272, 0, 0.45913, 0)
+LblStart.Size = UDim2.new(0.4106, 0, 0.08024, 0)
+LblStart.Font = Enum.Font.SourceSans
+LblStart.TextScaled = true
+LblStart.TextColor3 = Color3.fromRGB(255, 255, 255)
+LblStart.TextXAlignment = Enum.TextXAlignment.Left
+LblStart.Text = "Starting Point :"
+
+local StartPointLabel = Instance.new("TextLabel", MainFrame)
+StartPointLabel.Name = "StartPointLabel"
+StartPointLabel.BackgroundTransparency = 1
+StartPointLabel.Position = UDim2.new(0.55203, 0, 0.45913, 0)
+StartPointLabel.Size = UDim2.new(0.351, 0, 0.08024, 0)
+StartPointLabel.Font = Enum.Font.SourceSans
+StartPointLabel.TextScaled = true
+StartPointLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+StartPointLabel.TextXAlignment = Enum.TextXAlignment.Right
+StartPointLabel.Text = "0"
+
+local LblEarned = Instance.new("TextLabel", MainFrame)
+LblEarned.BackgroundTransparency = 1
+LblEarned.Position = UDim2.new(0.09272, 0, 0.51689, 0)
+LblEarned.Size = UDim2.new(0.4106, 0, 0.08024, 0)
+LblEarned.Font = Enum.Font.SourceSans
+LblEarned.TextScaled = true
+LblEarned.TextColor3 = Color3.fromRGB(255, 255, 255)
+LblEarned.TextXAlignment = Enum.TextXAlignment.Left
+LblEarned.Text = "Earned Point :"
+
+local EaernedPoinLabel = Instance.new("TextLabel", MainFrame)
+EaernedPoinLabel.Name = "EaernedPoinLabel"
+EaernedPoinLabel.BackgroundTransparency = 1
+EaernedPoinLabel.Position = UDim2.new(0.55203, 0, 0.51689, 0)
+EaernedPoinLabel.Size = UDim2.new(0.351, 0, 0.08024, 0)
+EaernedPoinLabel.Font = Enum.Font.SourceSans
+EaernedPoinLabel.TextScaled = true
+EaernedPoinLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+EaernedPoinLabel.TextXAlignment = Enum.TextXAlignment.Right
+EaernedPoinLabel.Text = "0"
+
+local LblCurrent = Instance.new("TextLabel", MainFrame)
+LblCurrent.BackgroundTransparency = 1
+LblCurrent.Position = UDim2.new(0.09272, 0, 0.57465, 0)
+LblCurrent.Size = UDim2.new(0.48787, 0, 0.08024, 0)
+LblCurrent.Font = Enum.Font.SourceSans
+LblCurrent.TextScaled = true
+LblCurrent.TextColor3 = Color3.fromRGB(255, 255, 255)
+LblCurrent.TextXAlignment = Enum.TextXAlignment.Left
+LblCurrent.Text = "Current Point :"
+
+local CurrentPointLabel = Instance.new("TextLabel", MainFrame)
+CurrentPointLabel.Name = "CurrentPointLabel"
+CurrentPointLabel.BackgroundTransparency = 1
+CurrentPointLabel.Position = UDim2.new(0.55203, 0, 0.57465, 0)
+CurrentPointLabel.Size = UDim2.new(0.351, 0, 0.08024, 0)
+CurrentPointLabel.Font = Enum.Font.SourceSans
+CurrentPointLabel.TextScaled = true
+CurrentPointLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+CurrentPointLabel.TextXAlignment = Enum.TextXAlignment.Right
+CurrentPointLabel.Text = "0"
+
+local PlayBtn = Instance.new("TextButton", MainFrame)
+PlayBtn.Name = "PlayBtn"
+PlayBtn.BackgroundColor3 = Color3.fromRGB(47, 0, 117)
+PlayBtn.Position = UDim2.new(0.09272, 0, 0.69276, 0)
+PlayBtn.Size = UDim2.new(0.81017, 0, 0.09786, 0)
+PlayBtn.Font = Enum.Font.SourceSans
+PlayBtn.TextScaled = true
+PlayBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+PlayBtn.Text = "Start Farm"
+Instance.new("UICorner", PlayBtn).CornerRadius = UDim.new(0.1, 0)
+
+local ShopBtn = Instance.new("TextButton", MainFrame)
+ShopBtn.Name = "ShopBtn"
+ShopBtn.BackgroundColor3 = Color3.fromRGB(122, 113, 15)
+ShopBtn.Position = UDim2.new(0.09272, 0, 0.81682, 0)
+ShopBtn.Size = UDim2.new(0.81017, 0, 0.09786, 0)
+ShopBtn.Font = Enum.Font.SourceSans
+ShopBtn.TextScaled = true
+ShopBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+ShopBtn.Text = "Open Shops"
+Instance.new("UICorner", ShopBtn).CornerRadius = UDim.new(0.1, 0)
+
+local OpenBtn = Instance.new("TextButton", QuestBossGui)
+OpenBtn.Name = "OpenBtn"
+OpenBtn.BackgroundColor3 = Color3.fromRGB(67, 0, 2)
+OpenBtn.Position = UDim2.new(0.66437, 0, 0.17778, 0)
+OpenBtn.Size = UDim2.new(0.05941, 0, 0.10648, 0)
+OpenBtn.Text = ""
+Instance.new("UICorner", OpenBtn).CornerRadius = UDim.new(1, 0)
+
+local OpenStroke = Instance.new("UIStroke", OpenBtn)
+OpenStroke.Thickness = 0.05
+OpenStroke.StrokeSizingMode = Enum.StrokeSizingMode.ScaledSize
+OpenStroke.Color = Color3.fromRGB(255, 225, 238)
+
+local OpenImg = Instance.new("ImageLabel", OpenBtn)
+OpenImg.BackgroundTransparency = 1
+OpenImg.Size = UDim2.new(1, 0, 1, 0)
+OpenImg.Image = "rbxassetid://204958628"
+
+-- ==========================================
+-- 2. SETUP PROFILE & POIN TRACKER
+-- ==========================================
+
+-- Set Foto Profil
+local successImg, resultImg = pcall(function()
+    return game:GetService("Players"):GetUserThumbnailAsync(player.UserId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size420x420)
+end)
+if successImg then PlrImg.Image = resultImg end
+
+-- Set Nama Player
+PlrName.Text = "@" .. player.Name .. " / " .. player.DisplayName
+
+-- Fungsi Ambil Poin dari UI Game
+local function getPointsNum()
+    local eventShop = playerGui:FindFirstChild("EVENT SHOP")
+    if eventShop then
+        local valueLabel = eventShop:FindFirstChild("Shop", true)
+        if valueLabel then
+            local pointsText = valueLabel.Parent:FindFirstChild("PointsPill", true)
+            if pointsText and pointsText:FindFirstChild("Value") then
+                -- Menghapus semua karakter kecuali angka (mengatasi format "3.000 Points")
+                local rawText = pointsText.Value.Text
+                local numStr = string.gsub(rawText, "%D", "")
+                return tonumber(numStr) or 0
+            end
+        end
+    end
+    return 0
+end
+
+-- Variabel State
+local startingPoints = getPointsNum()
+local isFarming = false
+
+-- Update Label Awal
+StartPointLabel.Text = tostring(startingPoints)
+CurrentPointLabel.Text = tostring(startingPoints)
+EaernedPoinLabel.Text = "0"
+
+-- Loop Update Poin Realtime
+task.spawn(function()
+    while task.wait(1) do
+        local current = getPointsNum()
+        CurrentPointLabel.Text = tostring(current)
+        EaernedPoinLabel.Text = tostring(current - startingPoints)
+    end
+end)
+
+-- ==========================================
+-- 3. LOGIC TOMBOL UI UTAMA
+-- ==========================================
+
+-- Toggle MainFrame
+MainFrame.Visible = true
+OpenBtn.MouseButton1Click:Connect(function()
+    MainFrame.Visible = not MainFrame.Visible
+end)
+
+-- Buka Event Shop
+ShopBtn.MouseButton1Click:Connect(function()
+    local eventShop = playerGui:FindFirstChild("EVENT SHOP")
+    if eventShop then
+        eventShop.Enabled = not eventShop.Enabled
+    else
+        warn("UI EVENT SHOP tidak ditemukan!")
+    end
+end)
+
+
+-- ==========================================
+-- 4. FUNGSI MINIGAME & TRUK (DARI SCRIPT LAMA)
 -- ==========================================
 
 local function eksekusiKlik(tombol)
@@ -35,10 +255,6 @@ local function cariSapi(daftarAbaikan)
     return nil
 end
 
--- ==========================================
--- 2. FUNGSI MINIGAME (DINAMIS / RANDOM RONDE)
--- ==========================================
-
 local function selesaikanTugasSapiAkurat()
     local minigameGui = playerGui:WaitForChild("QurbanMinigameGui", 10)
     if not minigameGui then 
@@ -52,10 +268,9 @@ local function selesaikanTugasSapiAkurat()
     local counterLbl = main:WaitForChild("MashCounter")
     
     local ronde = 1
-    local maxRonde = 12 -- Failsafe agar tidak infinite loop jika UI ngebug
+    local maxRonde = 12 
     
-    -- LOOP DINAMIS: Akan terus berjalan selama UI Minigame masih aktif (Enabled)
-    while minigameGui.Enabled and ronde <= maxRonde do
+    while minigameGui.Enabled and ronde <= maxRonde and isFarming do
         print("  [Ronde " .. ronde .. "] Menunggu tugas...")
         
         local tombolPertama = nil
@@ -68,15 +283,10 @@ local function selesaikanTugasSapiAkurat()
                 end
             end
             task.wait(0.1)
-        until tombolPertama or (tick() - waktuTunggu > 10) or not minigameGui.Enabled
+        until tombolPertama or (tick() - waktuTunggu > 10) or not minigameGui.Enabled or not isFarming
         
-        -- Jika UI sudah hilang saat menunggu, berarti minigame selesai
-        if not minigameGui.Enabled then break end
-        
-        if not tombolPertama then
-            warn("  [WARNING] Timeout minigame di ronde " .. ronde)
-            return false
-        end
+        if not minigameGui.Enabled or not isFarming then break end
+        if not tombolPertama then return false end
 
         local instText = instructionLbl.Text
         local countText = counterLbl.Text
@@ -119,7 +329,7 @@ local function selesaikanTugasSapiAkurat()
                 local btnTarget = mobileButtons:FindFirstChild("BtnKey_" .. hurufTarget)
                 if btnTarget then
                     for i = 1, targetClicks do
-                        if not btnTarget.Parent or not minigameGui.Enabled then break end
+                        if not btnTarget.Parent or not minigameGui.Enabled or not isFarming then break end
                         eksekusiKlik(btnTarget)
                         task.wait(0.1) 
                     end
@@ -127,26 +337,20 @@ local function selesaikanTugasSapiAkurat()
             end
         end
 
-        -- Tunggu sampai tombol hilang atau ronde berganti
         repeat
             local masihAda = false
             for _, child in ipairs(mobileButtons:GetChildren()) do
                 if string.match(child.Name, "^BtnKey_") then masihAda = true break end
             end
             task.wait(0.1)
-        until not masihAda or not minigameGui.Enabled
+        until not masihAda or not minigameGui.Enabled or not isFarming
         
         task.wait(0.5) 
         ronde = ronde + 1
     end
     
-    print("  [+] Sapi ini berhasil diselesaikan setelah " .. (ronde - 1) .. " ronde!")
     return true
 end
-
--- ==========================================
--- 3. ALUR UTAMA (AUTO FARM 4 SAPI)
--- ==========================================
 
 local function jalankanAutoFarmSapi()
     local character = player.Character or player.CharacterAdded:Wait()
@@ -154,7 +358,6 @@ local function jalankanAutoFarmSapi()
     
     local targetNPC = workspace:WaitForChild("Event"):WaitForChild("NPC"):FindFirstChild("DA0ZA")
     if targetNPC then
-        print("\n=================================")
         print("[1] Memulai Quest DA0ZA...")
         hrp.CFrame = targetNPC:GetPivot() * CFrame.new(0, 0, 3)
         task.wait(0.5)
@@ -167,33 +370,25 @@ local function jalankanAutoFarmSapi()
             local args = { { dialogId = "QurbanIntro", response = "accept" } }
             local remote = replicatedStorage:WaitForChild("EventAsset"):WaitForChild("QurbanRemotes"):WaitForChild("DialogResponse")
             remote:FireServer(unpack(args))
-            print("[✓] Quest Qurban diterima!")
         end
-    else
-        return warn("[ERROR] NPC DA0ZA tidak ditemukan!")
     end
     
     local sapiSelesai = {} 
     
     for urutan = 1, 4 do
-        print("\n---------------------------------")
+        if not isFarming then break end
         print("[2] Mencari Sapi ke-" .. urutan .. " dari 4...")
         
-        -- [REVISI] Jeda 3 detik HANYA diterapkan saat mau mencari sapi pertama
-        if urutan == 1 then
-            print("  [!] Menunggu 3 detik khusus untuk sapi pertama...")
-            task.wait(3)
-        end
+        if urutan == 1 then task.wait(3) end
         
         local sapiTarget = cariSapi(sapiSelesai)
         local waktuTunggu = tick()
-        while not sapiTarget and (tick() - waktuTunggu < 20) do
+        while not sapiTarget and (tick() - waktuTunggu < 20) and isFarming do
             task.wait(1)
             sapiTarget = cariSapi(sapiSelesai)
         end
         
         if sapiTarget then
-            print("-> Ditemukan: " .. sapiTarget.Name .. ". Meluncur!")
             hrp.CFrame = sapiTarget:GetPivot() * CFrame.new(0, 0, 3)
             task.wait(0.5)
             
@@ -202,30 +397,16 @@ local function jalankanAutoFarmSapi()
                 fireproximityprompt(promptSapi)
                 task.wait(1)
                 
-                local suksesMinigame = selesaikanTugasSapiAkurat()
-                if suksesMinigame then
+                if selesaikanTugasSapiAkurat() then
                     table.insert(sapiSelesai, sapiTarget)
                 end
-            else
-                warn("-> [ERROR] ProximityPrompt tidak ada di sapi ini!")
             end
         else
-            warn("-> [GAGAL] Sapi ke-" .. urutan .. " tidak ditemukan di map.")
             break 
         end
-        
-        -- Jeda istirahat di akhir dihapus. Sapi ke-2 dan seterusnya akan langsung dicari.
     end
-    
-    print("\n=================================")
-    print("QUEST SELESAI: 4 SAPI TELAH DIPOTONG!")
-    print("=================================\n")
     return true
 end
-
--- ==========================================
--- 4. FUNGSI TRUK & FISIKA
--- ==========================================
 
 local function nonaktifkanTabrakanMasjidPermanen()
     task.spawn(function()
@@ -291,21 +472,19 @@ end
 local function jalankanTrukModeAman()
     nonaktifkanTabrakanMasjidPermanen()
     local vehicleFolder = workspace:FindFirstChild("Vehicles")
-    if not vehicleFolder then return warn("[ERROR] Folder Vehicles tidak ditemukan!") end
-    
     local trukTarget = nil
-    for _, objek in ipairs(vehicleFolder:GetChildren()) do
-        if string.match(objek.Name, "^QurbanTruck_") then
-            trukTarget = objek
-            break
+    if vehicleFolder then
+        for _, objek in ipairs(vehicleFolder:GetChildren()) do
+            if string.match(objek.Name, "^QurbanTruck_") then
+                trukTarget = objek
+                break
+            end
         end
     end
     
     local tujuan = workspace:FindFirstChild("DestinationBeacon")
     
     if trukTarget and tujuan then
-        print("[INFO] Memulai rute penerbangan truk: " .. trukTarget.Name)
-        
         local KETINGGIAN_TERBANG = 400 
         local KECEPATAN_CEPAT = 100 
         local KECEPATAN_PELAN = 50  
@@ -326,7 +505,6 @@ local function jalankanTrukModeAman()
         end
         
         local endCFrame = posisiTanahCFrame + Vector3.new(0, 3.5, 0) 
-        
         local waypoint1_Naik = startCFrame + Vector3.new(0, KETINGGIAN_TERBANG, 0)
         local waypoint2_Maju = endCFrame + Vector3.new(0, KETINGGIAN_TERBANG, 0)
         local waypoint3_Turun = endCFrame
@@ -339,6 +517,7 @@ local function jalankanTrukModeAman()
         end)
         
         local function terbangKeTitik(targetCFrame, namaFase, kecepatanAktif)
+            if not isFarming then return end
             local jarak = (tweenValue.Value.Position - targetCFrame.Position).Magnitude
             local waktu = jarak / kecepatanAktif
             if waktu < 0.1 then waktu = 0.1 end 
@@ -358,9 +537,9 @@ local function jalankanTrukModeAman()
         
         aturFisikaTruk(trukTarget, false)
         
-        terbangKeTitik(waypoint1_Naik, "1 (Lepas Landas)", KECEPATAN_CEPAT)
-        terbangKeTitik(waypoint2_Maju, "2 (Mengudara ke Beacon)", KECEPATAN_CEPAT) 
-        terbangKeTitik(waypoint3_Turun, "3 (Mendarat di Beacon)", KECEPATAN_PELAN) 
+        terbangKeTitik(waypoint1_Naik, "1", KECEPATAN_CEPAT)
+        terbangKeTitik(waypoint2_Maju, "2", KECEPATAN_CEPAT) 
+        terbangKeTitik(waypoint3_Turun, "3", KECEPATAN_PELAN) 
         
         local masjidTarget = cariMasjidTerdekat(trukTarget:GetPivot().Position)
         if masjidTarget then
@@ -370,7 +549,7 @@ local function jalankanTrukModeAman()
                 posisiTanahCFrame.Position.Y + 3.5, 
                 posisiMasjid.Position.Z
             ) * posisiMasjid.Rotation
-            terbangKeTitik(waypoint4_Masjid, "4 (Parkir di Masjid)", KECEPATAN_PELAN)
+            terbangKeTitik(waypoint4_Masjid, "4", KECEPATAN_PELAN)
         end
         
         koneksi:Disconnect()
@@ -379,39 +558,42 @@ local function jalankanTrukModeAman()
         
         local brakeEvent = trukTarget:FindFirstChild("Brakeoverheat")
         if brakeEvent then brakeEvent:FireServer("SoundUpdate", 0, "Sound1") end
-        
         aturFisikaTruk(trukTarget, true)
-        print("[✓] Eksekusi Selesai! Truk 100% aman dari jepretan Fling.")
-    else
-        warn("[ERROR] Truk atau DestinationBeacon tidak ditemukan!")
     end
 end
 
 -- ==========================================
--- 5. EKSEKUSI LOOP UTAMA (INFINITY LOOP)
+-- 5. LOOP UTAMA & EVENT PLAY BTN
 -- ==========================================
 
 local function StartAutoFarmLoop()
-    -- Memberikan notifikasi awal
-    print("========================================")
-    print("🛠️ MASTER AUTO FARM STARTED 🛠️")
-    print("========================================")
-    
-    while true do
-        print("\n▶️ MEMULAI SIKLUS FARMING SAPI...")
+    while isFarming do
         local successFarm, errFarm = pcall(jalankanAutoFarmSapi)
         if not successFarm then warn("Error Sapi: " .. tostring(errFarm)) end
         
-        task.wait(2) -- Jeda transisi dari sapi ke truk
+        task.wait(2) 
+        if not isFarming then break end
         
-        print("\n▶️ MEMULAI SIKLUS PENGIRIMAN TRUK...")
         local successTruk, errTruk = pcall(jalankanTrukModeAman)
         if not successTruk then warn("Error Truk: " .. tostring(errTruk)) end
         
-        print("\n✅ SATU SIKLUS FULL SELESAI. Mengulang dalam 10 detik...")
-        task.wait(7) -- Jeda sebelum mengulang quest lagi dari DA0ZA
+        task.wait(7)
     end
 end
 
--- Jalankan Loop Utamanya
-task.spawn(StartAutoFarmLoop)
+PlayBtn.MouseButton1Click:Connect(function()
+    isFarming = not isFarming
+    if isFarming then
+        PlayBtn.Text = "Stop Farm"
+        PlayBtn.BackgroundColor3 = Color3.fromRGB(150, 0, 0)
+        
+        -- Reset start point patokan tiap kali mulai farming baru
+        startingPoints = getPointsNum()
+        StartPointLabel.Text = tostring(startingPoints)
+        
+        task.spawn(StartAutoFarmLoop)
+    else
+        PlayBtn.Text = "Start Farm"
+        PlayBtn.BackgroundColor3 = Color3.fromRGB(47, 0, 117)
+    end
+end)
