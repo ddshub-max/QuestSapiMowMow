@@ -531,14 +531,46 @@ local function jalankanAutoFarmSapi()
         end
         
         if sapiTarget then
-            player:RequestStreamAroundAsync(sapiTarget:GetPivot().Position) -- Load Map
-            hrp.CFrame = sapiTarget:GetPivot() * CFrame.new(0, 0, 3); task.wait(0.5)
-            local promptSapi = sapiTarget:FindFirstChildWhichIsA("ProximityPrompt", true)
-            if promptSapi then
-                fireproximityprompt(promptSapi); task.wait(1)
-                if selesaikanTugasSapiAkurat() then table.insert(sapiSelesai, sapiTarget) end
+            player:RequestStreamAroundAsync(sapiTarget:GetPivot().Position)
+            
+            -- Cari bagian tubuh utama sapi untuk ditempel
+            local sapiAkar = sapiTarget.PrimaryPart or sapiTarget:FindFirstChildWhichIsA("BasePart")
+            
+            if sapiAkar then
+                -- Teleport karakter ke depan sapi
+                hrp.CFrame = sapiAkar.CFrame * CFrame.new(0, 0, 3)
+                
+                -- [ANTI-GLITCH UI] Buat lem (WeldConstraint) agar karakter nempel ngikutin sapi
+                local tempWeld = Instance.new("WeldConstraint")
+                tempWeld.Part0 = hrp
+                tempWeld.Part1 = sapiAkar
+                tempWeld.Parent = hrp
+                
+                -- Jeda sebentar agar server mendaftarkan lem fisika tersebut
+                task.wait(0.5) 
+                
+                local promptSapi = sapiTarget:FindFirstChildWhichIsA("ProximityPrompt", true)
+                if promptSapi then
+                    fireproximityprompt(promptSapi)
+                    task.wait(1)
+                    
+                    local suksesMinigame = selesaikanTugasSapiAkurat()
+                    table.insert(sapiSelesai, sapiTarget)
+                    
+                    if not suksesMinigame then
+                        print("  [WARNING] Minigame sapi gagal/timeout. Skip ke sapi berikutnya.")
+                    end
+                end
+                
+                -- [ANTI-GLITCH UI] Hancurkan lem agar karakter bisa lepas dan jalan lagi
+                tempWeld:Destroy()
+            else
+                warn("  [ERROR] Tidak bisa Weld, sapi tidak memiliki BasePart!")
             end
-        else break end
+            
+        else 
+            break 
+        end
     end
     return true
 end
