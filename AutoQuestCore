@@ -533,39 +533,36 @@ local function jalankanAutoFarmSapi()
         if sapiTarget then
             player:RequestStreamAroundAsync(sapiTarget:GetPivot().Position)
             
-            -- Cari bagian tubuh utama sapi untuk ditempel
-            local sapiAkar = sapiTarget.PrimaryPart or sapiTarget:FindFirstChildWhichIsA("BasePart")
-            
-            if sapiAkar then
-                -- Teleport karakter ke depan sapi
-                hrp.CFrame = sapiAkar.CFrame * CFrame.new(0, 0, 3)
+            local promptSapi = sapiTarget:FindFirstChildWhichIsA("ProximityPrompt", true)
+            if promptSapi then
                 
-                -- [ANTI-GLITCH UI] Buat lem (WeldConstraint) agar karakter nempel ngikutin sapi
-                local tempWeld = Instance.new("WeldConstraint")
-                tempWeld.Part0 = hrp
-                tempWeld.Part1 = sapiAkar
-                tempWeld.Parent = hrp
-                
-                -- Jeda sebentar agar server mendaftarkan lem fisika tersebut
-                task.wait(0.5) 
-                
-                local promptSapi = sapiTarget:FindFirstChildWhichIsA("ProximityPrompt", true)
-                if promptSapi then
-                    fireproximityprompt(promptSapi)
-                    task.wait(1)
-                    
-                    local suksesMinigame = selesaikanTugasSapiAkurat()
-                    table.insert(sapiSelesai, sapiTarget)
-                    
-                    if not suksesMinigame then
-                        print("  [WARNING] Minigame sapi gagal/timeout. Skip ke sapi berikutnya.")
+                -- [ANTI-GLITCH UI V2] METODE MAGNET (Tanpa Anchor & Tanpa Weld)
+                local nempelTerus = true
+                task.spawn(function()
+                    -- Karakter akan terus di-teleport ke depan sapi super cepat
+                    while nempelTerus and sapiTarget and sapiTarget.Parent and isFarming do
+                        hrp.CFrame = sapiTarget:GetPivot() * CFrame.new(0, 0, 3)
+                        task.wait() -- Update posisi secepat mungkin
                     end
+                end)
+                
+                -- Jeda sedikit agar magnetnya stabil membidik target
+                task.wait(0.5)
+                
+                -- Eksekusi prompt
+                fireproximityprompt(promptSapi)
+                task.wait(1)
+                
+                -- Jalankan minigame sambil karakter terus terseret ngikutin sapi
+                local suksesMinigame = selesaikanTugasSapiAkurat()
+                table.insert(sapiSelesai, sapiTarget)
+                
+                if not suksesMinigame then
+                    print("  [WARNING] Minigame sapi gagal/timeout. Skip ke sapi berikutnya.")
                 end
                 
-                -- [ANTI-GLITCH UI] Hancurkan lem agar karakter bisa lepas dan jalan lagi
-                tempWeld:Destroy()
-            else
-                warn("  [ERROR] Tidak bisa Weld, sapi tidak memiliki BasePart!")
+                -- [MATIKAN MAGNET] Lepaskan ikatan setelah minigame selesai/gagal
+                nempelTerus = false
             end
             
         else 
